@@ -18,8 +18,8 @@ slip = 0.05
 discount = 0.9
 epsilon = 0.1
 decay = 0.0
-init = -10
-iterations = 1000
+init = 0
+iterations = 100
 terminal = [x for x in crack]
 terminal.append(goal)
 
@@ -81,7 +81,7 @@ def main():
     print('final Q table:\n', Q)
     print('final state values:\n', V)
     ma_rewards = np.convolve(rewards, np.ones((1,))/1,mode='valid')
-    plt.plot(ma_rewards)
+    plt.plot(ma_rewards, 'o')
     plt.show()
 
 
