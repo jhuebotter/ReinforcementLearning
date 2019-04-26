@@ -16,17 +16,17 @@ goal = (0,3)
 start = (3,0)
 slip = 0.05
 discount = 0.9
-epsilon = 0.1
-decay = 0.0
+epsilon = 0.2
+decay = 0.01
 init = 0
-iterations = 100
+iterations = 1000
 terminal = [x for x in crack]
 terminal.append(goal)
 
 
 def main():
     R, Q = initialize(init=init)
-
+    print(R)
     rewards = []
 
     #env = world.World()
@@ -37,7 +37,7 @@ def main():
 
         pos = start
         G = 0
-        newQ = Q.copy()
+        newQ = np.zeros(Q.shape) #Q.copy()
 
         while (not isGameOver(pos)):
             
@@ -51,7 +51,8 @@ def main():
             for j in getTransitionChances(pos, action):
                 pot_pos = j[0]
                 prob = j[1]
-                newQ[states.index(pos)][action] += prob * (R[pot_pos] + discount * max(newQ[states.index(pot_pos)]) - newQ[states.index(pos)][action])
+                #newQ[states.index(pos)][action] += prob * (R[pot_pos] + discount * max(newQ[states.index(pot_pos)]) - newQ[states.index(pos)][action])
+                newQ[states.index(pos)][action] += prob * (R[pot_pos] + discount * max(Q[states.index(pot_pos)]))
 
             pos = getNextState(pos, action)
             
