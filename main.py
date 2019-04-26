@@ -3,6 +3,7 @@
     Created @ April 2019'''
 
 import numpy as np
+import sys
 
 UP = 0
 RIGHT = 1
@@ -21,18 +22,20 @@ TERMINAL.append(GOAL)
 
 def main():
 
-    R, Q, V, states, actions = initialize(init=0)
-
-    done = False
-    while (not done):
-        user_input = input("What method would you like to use? Choose from: <random>, <value iteration> or <manual>. USER INPUT: ")
+    while True:
+        R, Q, V, states, actions = initialize(init=0)
+        user_input = input("What method would you like to use? Choose from: <random>, <value iteration>, <policy iteration>, <manual> or <exit>. USER INPUT: ")
 
         if user_input.lower() == "random":
             random_policy(R, Q, V, states, actions)
         elif user_input.lower() == "value iteration":
             value_iteration(R, Q, V, states, actions)
+        elif user_input.lower() == "policy iteration":
+            policy_iteration(R, Q, V, states, actions)
         elif user_input.lower() == "manual":
             manual(R, Q, V, states, actions)
+        elif user_input.lower() == "exit":
+            sys.exit()
         else:
             print("Invalid input. Please choose between <random>, <value iteration> or <manual>.")
             continue
@@ -90,10 +93,10 @@ def random_policy(R, Q, V, states, actions):
         print()
         print('State values after iteration %i:' % i)
         print(V)
-    print('Value iteration converged')
+    print('Random policy iteration converged')
 
 
-def value_iteration(R, Q, V, states, actions):
+def policy_iteration(R, Q, V, states, actions):
     print('State values after initialization:')
     print(V)
 
@@ -117,7 +120,27 @@ def value_iteration(R, Q, V, states, actions):
         print()
         print('State values after iteration %i:' % i)
         print(V)
-    print('Value iteration converged')
+    print('Policy iteration converged')
+
+
+def value_iteration(R, Q, V, states, actions):
+    print('State values after initialization:')
+    print(V)
+
+    done = False
+    i = 0
+    while (not done):
+        newV = np.zeros(V.shape)
+        for state in [s for s in states if s not in TERMINAL]:
+            newV[state] = max([ sum([p * (R[next_state] + DISCOUNT * V[next_state]) for (next_state, p) in getTransitionChances(state, a)]) for a in actions])
+        if (V == newV).all():
+            done = True
+        V = newV.copy()
+        i += 1
+        print()
+        print('State values after iteration %i:' % i)
+        print(V)
+    print('Policy iteration converged')
 
 
 def manual(R, Q, V, states, actions):
