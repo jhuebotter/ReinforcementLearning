@@ -14,7 +14,7 @@ SHIP = (2, 2)
 GOAL = (0, 3)
 START = (3, 0)
 SLIP = 0.05
-DISCOUNT = 0.9
+DISCOUNT = 0.5
 EPSILON = 1
 TERMINAL = [x for x in CRACK]
 TERMINAL.append(GOAL)
@@ -24,7 +24,7 @@ def main():
 
     while True:
         R, Q, V, states, actions = initialize(init=0)
-        user_input = input("What method would you like to use? Choose from: <random>, <value iteration>, <policy iteration>, <manual> or <exit>. USER INPUT: ")
+        user_input = input("What method would you like to use? Choose from: <random>, <value iteration>, <(simple) policy iteration>, <manual> or <exit>. USER INPUT: ")
 
         if user_input.lower() == "random":
             random_policy(R, Q, V, states, actions)
@@ -32,6 +32,8 @@ def main():
             value_iteration(R, Q, V, states, actions)
         elif user_input.lower() == "policy iteration":
             policy_iteration(R, Q, V, states, actions)
+        elif user_input.lower() == "simple policy iteration":
+            simple_policy_iteration(R, Q, V, states, actions)
         elif user_input.lower() == "manual":
             manual(R, Q, V, states, actions)
         elif user_input.lower() == "exit":
@@ -78,12 +80,10 @@ def random_policy(R, Q, V, states, actions):
     while (not done):
         newQ = np.zeros(Q.shape)
         for state in [s for s in states if s not in TERMINAL]:
-            for action in actions:
-                for j in getTransitionChances(state, action):
-                    next_state = j[0]
-                    prob = j[1]
-                    newQ[states.index(state)][action] += act_prob * prob * (R[next_state] + DISCOUNT * max(Q[states.index(next_state)]))
+            newQ[states.index(state)] = [sum([act_prob * p * (R[next_state] + DISCOUNT * max(Q[states.index(next_state)])) for (next_state, p) in getTransitionChances(state, a)]) for a in actions]
+            #newQ[states.index(state)] = [sum([act_prob * p * (R[next_state] + DISCOUNT * [Q[states.index(next_state)][b] for b in actions]) for (next_state, p) in getTransitionChances(state, a)]) for a in actions]
 
+            #for state in states:
             V[state] = np.max(newQ[states.index(state)])
 
         if (Q == newQ).all():
@@ -95,6 +95,8 @@ def random_policy(R, Q, V, states, actions):
         print(V)
     print('Random policy iteration converged')
 
+    return V, Q, i
+
 
 def policy_iteration(R, Q, V, states, actions):
     print('State values after initialization:')
@@ -105,18 +107,45 @@ def policy_iteration(R, Q, V, states, actions):
     while (not done):
         newQ = np.zeros(Q.shape)
         for state in [s for s in states if s not in TERMINAL]:
-            for action in actions:
-                for j in getTransitionChances(state, action):
-                    next_state = j[0]
-                    prob = j[1]
-                    newQ[states.index(state)][action] += prob * (
-                                R[next_state] + DISCOUNT * max(Q[states.index(next_state)]))
+            # here we evaluate the policy
+            newQ[states.index(state)] = [sum([p * (R[next_state] + DISCOUNT * V[next_state]) for (next_state, p) in getTransitionChances(state, a)]) for a in actions]
+
+        for state in states: 
+            # here we improve the policy by being greedy over all actions possible at each state
             V[state] = np.max(newQ[states.index(state)])
 
         if (Q == newQ).all():
             done = True
         Q = newQ.copy()
         i += 1
+        print()
+        print('State values after iteration %i:' % i)
+        print(V)
+    print('Policy iteration converged')
+
+
+def simple_policy_iteration(R, Q, V, states, actions):
+    print('State values after initialization:')
+    print(V)
+
+    done = False
+    i = 0
+    newQ = np.zeros(Q.shape)
+    while (not done):
+        for state in [s for s in states if s not in TERMINAL]:
+            # here we evaluate the policy
+            newQ[states.index(state)] = [sum([p * (R[next_state] + DISCOUNT * V[next_state]) for (next_state, p) in getTransitionChances(state, a)]) for a in actions]
+            if (newQ[states.index(state)] != Q[states.index(state)]).any():
+                i += 1
+                break
+        for state in states: 
+            # here we improve the policy by being greedy over all actions possible at each state
+            V[state] = np.max(newQ[states.index(state)])
+
+        if (Q == newQ).all():
+            done = True
+        Q = newQ.copy()
+        #i += 1
         print()
         print('State values after iteration %i:' % i)
         print(V)
@@ -140,7 +169,7 @@ def value_iteration(R, Q, V, states, actions):
         print()
         print('State values after iteration %i:' % i)
         print(V)
-    print('Policy iteration converged')
+    print('Value iteration converged')
 
 
 def manual(R, Q, V, states, actions):
