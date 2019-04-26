@@ -15,9 +15,10 @@ epsilon = 1
 terminal = [x for x in crack]
 terminal.append(goal)
 
+
 def main():
-    R, Q, V, states, actions = initialize()
-    user_input = input("What method would you like to use? Choose from: random, value iteration. USER INPUT: ")
+    R, Q, V, states, actions = initialize(init=0)
+    user_input = input("What method would you like to use? Choose from: <random>, <value iteration> or <manual>. USER INPUT: ")
 
     if user_input.lower() == "random":
         random_policy(R, Q, V, states, actions)
@@ -59,6 +60,7 @@ def initialize(init=0):
 
 def random_policy(R, Q, V, states, actions):
     done = False
+    act_prob = 1/len(actions)
     while (not done):
         newQ = np.zeros(Q.shape)
         for state in [s for s in states if s not in terminal]:
@@ -66,7 +68,7 @@ def random_policy(R, Q, V, states, actions):
                 for j in getTransitionChances(state, action):
                     next_state = j[0]
                     prob = j[1]
-                    newQ[states.index(state)][action] += prob * (R[next_state] + discount * np.random.choice(Q[states.index(next_state)]))
+                    newQ[states.index(state)][action] += act_prob * prob * (R[next_state] + discount * max(Q[states.index(next_state)]))
             V[state] = np.max(newQ[states.index(state)])
 
         if (Q == newQ).all():
@@ -124,6 +126,7 @@ def manual(R, Q, V, states, actions):
         G += R[state]
         print("Reward gained: ", R[state])
     print("The game has ended. You have collected a total of %i reward!" % G)
+
 
 def getTransitionChances(pos, action, debug=False):
     if debug: print('starting position:', pos)
@@ -242,6 +245,7 @@ def isConverged(Q, newQ):
 
 def isGameOver(state):
     return state in terminal
+
 
 if __name__ == '__main__':
     main()
