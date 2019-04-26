@@ -1,7 +1,6 @@
 ''' Assignment: Planning & Reinforcement Learning 1
-    By: Justus Hubotter, Florence van der Voort, Stefan Wijtsma
+    By: Justus Hübotter, Florence van der Voort, Stefan Wijtsma
     Created @ April 2019'''
-
 
 import numpy as np
 
@@ -20,20 +19,23 @@ TERMINAL = [x for x in CRACK]
 TERMINAL.append(GOAL)
 
 
-
 def main():
 
     R, Q, V, states, actions = initialize(init=0)
-    user_input = input("What method would you like to use? Choose from: <random>, <value iteration> or <manual>. USER INPUT: ")
 
-    if user_input.lower() == "random":
-        random_policy(R, Q, V, states, actions)
-    elif user_input.lower() == "value iteration":
-        value_iteration(R, Q, V, states, actions)
-    elif user_input.lower() == "manual":
-        manual(R, Q, V, states, actions)
-    else:
-        pass
+    done = False
+    while (not done):
+        user_input = input("What method would you like to use? Choose from: <random>, <value iteration> or <manual>. USER INPUT: ")
+
+        if user_input.lower() == "random":
+            random_policy(R, Q, V, states, actions)
+        elif user_input.lower() == "value iteration":
+            value_iteration(R, Q, V, states, actions)
+        elif user_input.lower() == "manual":
+            manual(R, Q, V, states, actions)
+        else:
+            print("Invalid input. Please choose between <random>, <value iteration> or <manual>.")
+            continue
 
 
 def initialize(init=0):
@@ -64,8 +66,12 @@ def initialize(init=0):
 
 
 def random_policy(R, Q, V, states, actions):
+    print('State values after initialization:')
+    print(V)
+
     done = False
     act_prob = 1/len(actions)
+    i = 0
     while (not done):
         newQ = np.zeros(Q.shape)
         for state in [s for s in states if s not in TERMINAL]:
@@ -80,11 +86,17 @@ def random_policy(R, Q, V, states, actions):
         if (Q == newQ).all():
             done = True
         Q = newQ.copy()
-
+        i += 1
+        print()
+        print('State values after iteration %i:' % i)
         print(V)
+    print('Value iteration converged')
 
 
 def value_iteration(R, Q, V, states, actions):
+    print('State values after initialization:')
+    print(V)
+
     done = False
     i = 0
     while (not done):
@@ -251,7 +263,6 @@ def isConverged(Q, newQ):
 
 def isGameOver(state):
     return state in TERMINAL
-
 
 
 if __name__ == '__main__':
