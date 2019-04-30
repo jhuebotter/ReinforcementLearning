@@ -1,4 +1,4 @@
-''' Assignment: Planning & Reinforcement Learning 1
+''' Assignment: Planning & Reinforcement Learning Assignment 1
     By: Justus Hübotter, Florence van der Voort, Stefan Wijtsma
     Created @ April 2019'''
 
@@ -24,9 +24,9 @@ def main():
 
     while True:
         R, Q, V, states, actions = initialize(init=0)
-        user_input = input("What method would you like to use? Choose from: <random>, <value iteration>, <(simple) policy iteration>, <manual> or <exit>. USER INPUT: ")
+        user_input = input("What method would you like to use? Choose from: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>. USER INPUT: ")
 
-        if user_input.lower() == "random":
+        if user_input.lower() == "random policy":
             random_policy(R, Q, V, states, actions)
         elif user_input.lower() == "value iteration":
             value_iteration(R, Q, V, states, actions)
@@ -39,7 +39,7 @@ def main():
         elif user_input.lower() == "exit":
             sys.exit()
         else:
-            print("Invalid input. Please choose between <random>, <value iteration> or <manual>.")
+            print("Invalid input. Please choose between: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.")
             continue
 
 
@@ -109,32 +109,6 @@ def random_policy(R, Q, V, states, actions):
     print('Random policy iteration converged')
 
     return V, Q, i
-
-
-def policy_iteration(R, Q, V, states, actions):
-    print('State values after initialization:')
-    print(V)
-
-    done = False
-    i = 0
-    while (not done):
-        newQ = np.zeros(Q.shape)
-        for state in [s for s in states if s not in TERMINAL]:
-            # here we evaluate the policy
-            newQ[states.index(state)] = [sum([p * (R[next_state] + DISCOUNT * V[next_state]) for (next_state, p) in getTransitionChances(state, a)]) for a in actions]
-
-        for state in states: 
-            # here we improve the policy by being greedy over all actions possible at each state
-            V[state] = np.max(newQ[states.index(state)])
-
-        if (Q == newQ).all():
-            done = True
-        Q = newQ.copy()
-        i += 1
-        print()
-        print('State values after iteration %i:' % i)
-        print(V)
-    print('Policy iteration converged')
 
 
 def policy_iteration(R, Q, V, states, actions):
