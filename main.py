@@ -26,7 +26,7 @@ def main():
         R, Q, V, states, actions = initialize(init=0)
         user_input = input("What method would you like to use? Choose from: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>. USER INPUT: ")
 
-        if user_input.lower() == "random":
+        if user_input.lower() == "random policy":
             random_policy(R, Q, V, states, actions)
         elif user_input.lower() == "value iteration":
             value_iteration(R, Q, V, states, actions)
