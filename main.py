@@ -1,4 +1,4 @@
-''' Assignment: Planning & Reinforcement Learning 1
+''' Assignment: Planning & Reinforcement Learning Assignment 1
     By: Justus Hübotter, Florence van der Voort, Stefan Wijtsma
     Created @ April 2019'''
 
@@ -14,7 +14,7 @@ SHIP = (2, 2)
 GOAL = (0, 3)
 START = (3, 0)
 SLIP = 0.05
-DISCOUNT = 0.5
+DISCOUNT = 0.9
 EPSILON = 1
 TERMINAL = [x for x in CRACK]
 TERMINAL.append(GOAL)
@@ -24,7 +24,7 @@ def main():
 
     while True:
         R, Q, V, states, actions = initialize(init=0)
-        user_input = input("What method would you like to use? Choose from: <random>, <value iteration>, <(simple) policy iteration>, <manual> or <exit>. USER INPUT: ")
+        user_input = input("What method would you like to use? Choose from: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>. USER INPUT: ")
 
         if user_input.lower() == "random":
             random_policy(R, Q, V, states, actions)
@@ -39,7 +39,7 @@ def main():
         elif user_input.lower() == "exit":
             sys.exit()
         else:
-            print("Invalid input. Please choose between <random>, <value iteration> or <manual>.")
+            print("Invalid input. Please choose between: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.")
             continue
 
 
@@ -82,7 +82,6 @@ def random_policy(R, Q, V, states, actions):
         for state in [s for s in states if s not in TERMINAL]:
             newQ[states.index(state)] = [sum([act_prob * p * (R[next_state] + DISCOUNT * max(Q[states.index(next_state)])) for (next_state, p) in getTransitionChances(state, a)]) for a in actions]
             #newQ[states.index(state)] = [sum([act_prob * p * (R[next_state] + DISCOUNT * [Q[states.index(next_state)][b] for b in actions]) for (next_state, p) in getTransitionChances(state, a)]) for a in actions]
-
             #for state in states:
             V[state] = np.max(newQ[states.index(state)])
 
