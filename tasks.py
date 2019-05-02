@@ -1,5 +1,8 @@
 import main
 import numpy as np
+import matplotlib.pyplot as plt
+
+plt.style.use('ggplot')
 
 
 def task1():
@@ -23,30 +26,44 @@ def task2():
 def task3():
 	print('TASK 3:')
 	print('Value iteration for various discount factors.')
-	for g in np.arange(0.1, 1.0, 0.1):
+	results = {}
+	for g in np.arange(0.1, 1.1, 0.4):
 		R, Q, V, states, actions = main.initialize(init=0)
-		main.value_iteration(R, Q, V, states, actions, gamma=g)
+		deltas = main.value_iteration(R, Q, V, states, actions, gamma=g)
+		results.update({'Value iteration (gamma = %.1f)' % g : deltas})
 		print('\n\n')
 	print('Task 3 complete.')
 	print()
+
+	return results
 
 
 def task4():
 	print('TASK 4:')
 	print('Howards policy iteration.')
-	R, Q, V, states, actions = main.initialize(init=0)
-	main.policy_iteration(R, Q, V, states, actions)
+	results = {}
+	for g in np.arange(0.1, 1.1, 0.4):
+		R, Q, V, states, actions = main.initialize(init=0)
+		deltas = main.policy_iteration(R, Q, V, states, actions, gamma=g)
+		results.update({'Howards P.I. (gamma = %.1f)' % g : deltas})
 	print('Task 4 complete.')
 	print()
+
+	return results
 
 
 def task5():
 	print('TASK 5.1:')
 	print('Simple policy iteration.')
-	R, Q, V, states, actions = main.initialize(init=0)
-	main.simple_policy_iteration(R, Q, V, states, actions)
+	results = {}
+	for g in np.arange(0.1, 1.1, 0.4):
+		R, Q, V, states, actions = main.initialize(init=0)
+		deltas = main.simple_policy_iteration(R, Q, V, states, actions, gamma=g)
+		results.update({'Simple P.I. (gamma = %.1f)' % g : deltas})
 	print('Task 5 complete.')
 	print()
+
+	return results
 
 
 def task7():
@@ -60,21 +77,43 @@ def task7():
 	print()
 
 
+def plot_deltas(all_deltas):
+
+	for name, deltas in all_deltas.items():
+			plt.plot(np.arange(1,len(deltas)+1), deltas, label=name)
+	plt.title('Maximum Value function update per iteration')
+	plt.xlabel('Iteration')
+	plt.ylabel('Delta')
+	plt.legend()
+	plt.show()
+
+
+
 if __name__ == '__main__':
+	#all_deltas = {}
+	'''
 	task1()
 	input('Press ENTER to continue')
 	print('\n', 150 * '#', '\n')
 	task2()
 	input('Press ENTER to continue')
 	print('\n', 150 * '#', '\n')
-	task3()
+	'''
+	results = task3()
+	plot_deltas(results)
 	input('Press ENTER to continue')
 	print('\n', 150 * '#', '\n')
-	task4()
+	results = task4()
+	plot_deltas(results)
 	input('Press ENTER to continue')
 	print('\n', 150 * '#', '\n')
-	task5()
+	results = task5()
+	plot_deltas(results)
+	'''
 	input('Press ENTER to continue')
 	print('\n', 150 * '#', '\n')
 	task7()
+	'''
+	#print(all_deltas)
+	#plot_deltas(all_deltas)
 

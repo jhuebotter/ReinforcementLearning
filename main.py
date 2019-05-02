@@ -4,6 +4,7 @@
 
 import numpy as np
 import sys
+import time
 
 UP = 0
 RIGHT = 1
@@ -78,11 +79,13 @@ def random_policy(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3), d
     print('State values after initialization:')
     print(V)
 
+    deltas = []
+    t0 = time.time_ns()
     pi = np.ones(Q.shape)
     pi *= 0.25
-    delta = theta + 1
     i = 0
-    while delta > theta:
+    while True:
+        delta = 0
         newQ = np.zeros(Q.shape)
         for state in [s for s in states if s not in TERMINAL]:
             for a in actions:
@@ -90,20 +93,27 @@ def random_policy(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3), d
                     newQ[states.index(state)][a] += pi[states.index(state)][a] * p * (R[next_state] + (gamma * V[next_state]))
 
         for state in states:
+            v = V[state].copy()
             V[state] = np.sum(newQ[states.index(state)])
+            delta = max(delta, abs(v - V[state]))
 
-        delta = np.abs(np.sum(Q - newQ))
         if debug: print('delta:', delta)
         Q = newQ.copy()
         i += 1
+        deltas.append(delta)
+        if delta < theta:
+            break
 
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
     print()
     print('Random policy iteration converged')
+    print('Runtime in ms: ', runtime)
     print('State values after iteration %i:' % i)
     print(V)
     
 
-    return V, Q, i
+    return deltas
 
 
 def policy_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3)):
@@ -112,26 +122,39 @@ def policy_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3)
     print('State values after initialization:')
     print(V)
 
-    delta = theta + 1
+    deltas = []
+    t0 = time.time_ns()
     i = 0
-    while delta > theta:
+    while True:
+        delta = 0
         newQ = np.zeros(Q.shape)
         for state in [s for s in states if s not in TERMINAL]:
             # here we evaluate the policy
+            #backup(R, Q, V, states, actions, gamma, state)
             newQ[states.index(state)] = [sum([p * (R[next_state] + gamma * V[next_state]) for (next_state, p) in getTransitionChances(state, a)]) for a in actions]
+            #newQ[states.index(state)] = backup(R, Q, V, states, actions, gamma, state)
 
         for state in states: 
             # here we improve the policy by being greedy over all actions possible at each state
+            v = V[state].copy()
             V[state] = np.max(newQ[states.index(state)])
+            delta = max(delta, abs(v - V[state]))
 
-        delta = np.abs(np.sum(Q - newQ))
         Q = newQ.copy()
         i += 1
+        deltas.append(delta)
+        if delta < theta:
+            break
     
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
     print()
     print('Policy iteration converged')
+    print('Runtime in ms: ', runtime)
     print('State values after iteration %i:' % i)
     print(V)
+
+    return deltas
 
 
 def backup_policy_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3)):
@@ -140,42 +163,69 @@ def backup_policy_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=floa
     print('State values after initialization:')
     print(V)
 
-    delta = theta + 1
+    t0 = time.time_ns()
     i = 0
-    while delta > theta:
+    while True:
         newQ = np.zeros(Q.shape)
         for state in [s for s in states if s not in TERMINAL]:
-            # here we evaluate the policy
-            newQ[states.index(state)] = [sum([p * (R[next_state] + gamma * max([sum([p2 * (R[next_state2] + gamma * max(Q[states.index(next_state2)])) for (next_state2, p2) in getTransitionChances(next_state, a2)]) for a2 in actions])) for (next_state, p) in getTransitionChances(state, a)]) for a in actions]
+            for a in actions:
+                for (next_state, p) in getTransitionChances(state, a):
+                    for a2 in actions:
+                        for (next_state2, p2) in getTransitionChances(next_state, a2):
+                            # here we evaluate the policy
+                            newQ[states.index(state)][a] += p * (R[next_state] + gamma * max([sum([p2 * (R[next_state2] + gamma**2 * V[next_state2])])]))
 
         for state in states: 
             # here we improve the policy by being greedy over all actions possible at each state
+            v = V[state].copy()
             V[state] = np.max(newQ[states.index(state)])
+            delta = max(delta, abs(v - V[state]))
 
-        delta = np.abs(np.sum(Q - newQ))
         Q = newQ.copy()
         i += 1
+        if delta < theta:
+            break
     
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
     print()
     print('Policy iteration converged')
+    print('Runtime in ms: ', runtime)
     print('State values after iteration %i:' % i)
     print(V)
 
 
-def simple_policy_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=0.):
+def backup(R, Q, V, states, actions, gamma, state):
+    x = np.zeros(len(actions))
+    for a in actions:
+        for next_state, p in getTransitionChances(state, a):
+            x[a] += p * (R[next_state] + gamma * V[next_state])
+    return x
+
+
+def simple_policy_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3)):
     print('Starting simple policy iteration')
     print('Discount factor:', gamma)
     print('State values after initialization:')
     print(V)
 
+    deltas = []
+    t0 = time.time_ns()
     newQ = np.zeros(Q.shape)
-    delta = theta + 1
     i = 0
-    while delta > theta:
+    while True:
+        delta = 0
         for state in [s for s in states if s not in TERMINAL]:
-            # here we evaluate the policy
-            newQ[states.index(state)] = [sum([p * (R[next_state] + gamma * V[next_state]) for (next_state, p) in getTransitionChances(state, a)]) for a in actions]
-            if (newQ[states.index(state)] != Q[states.index(state)]).any():
+            for a in actions:
+                #q = Q[states.index(state)][a].copy()
+                # here we evaluate the policy
+                newQ[states.index(state)][a] = sum([p * (R[next_state] + gamma * V[next_state]) for (next_state, p) in getTransitionChances(state, a)])
+                #delta = max(delta, abs(q - newQ[states.index(state)][a]))
+            delta = max(delta, abs(max(newQ[states.index(state)])))
+            if max(newQ[states.index(state)]) == max(Q[states.index(state)]):
+                pass
+            else:
+                deltas.append(delta)
                 i += 1
                 break
 
@@ -183,13 +233,20 @@ def simple_policy_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=0.):
             # here we improve the policy by being greedy over all actions possible at each state
             V[state] = np.max(newQ[states.index(state)])
 
-        delta = np.abs(np.sum(Q - newQ))
         Q = newQ.copy()
 
+        if delta <= theta:
+            break
+
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
     print()
     print('Simple policy iteration converged')
+    print('Runtime in ms: ', runtime)
     print('State values after iteration %i:' % i)
     print(V)
+
+    return deltas
 
 
 def value_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3)):
@@ -198,22 +255,32 @@ def value_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3))
     print('State values after initialization:')
     print(V)
 
+    deltas = []
+    t0 = time.time_ns()
     i = 0
-    delta = theta + 1
-    while delta > theta:
+    while True:
+        delta = 0
         newV = np.zeros(V.shape)
         for state in [s for s in states if s not in TERMINAL]:
+            v = V[state]
             newV[state] = max([ sum([p * (R[next_state] + gamma * V[next_state]) for (next_state, p) in getTransitionChances(state, a)]) for a in actions])
-
-        delta = np.abs(np.sum(V - newV))
+            delta = max(delta, abs(v - newV[state]))
 
         V = newV.copy()
         i += 1
+        deltas.append(delta)
+        if delta < theta:
+            break
     
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
     print()
     print('Value iteration converged')
+    print('Runtime in ms: ', runtime)
     print('State values after iteration %i:' % i)
     print(V)
+
+    return deltas
     
 
 def manual(R):
