@@ -1,5 +1,5 @@
 ''' Assignment: Planning & Reinforcement Learning Assignment 1
-    By: Justus Hübotter, Florence van der Voort, Stefan Wijtsma
+    By: Justus Hübotter (2617135), Florence van der Voort (2652198), Stefan Wijtsma (2575874)
     Created @ April 2019'''
 
 import numpy as np
@@ -25,7 +25,8 @@ def main():
 
     while True:
         R, Q, V, states, actions = initialize(init=0)
-        user_input = input("What method would you like to use? Choose from: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>. USER INPUT: ")
+        user_input = input("What method would you like to use? Choose from: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.  \n"
+                           "USER INPUT: ")
 
         if user_input.lower() == "random policy":
             random_policy(R, Q, V, states, actions)
@@ -42,7 +43,8 @@ def main():
         elif user_input.lower() == "exit":
             sys.exit()
         else:
-            print("Invalid input. Please choose between: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.")
+            print("Invalid input. \n "
+                  "Please choose between: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.")
             continue
 
 
@@ -97,7 +99,7 @@ def random_policy(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3), d
             V[state] = np.sum(newQ[states.index(state)])
             delta = max(delta, abs(v - V[state]))
 
-        if debug: print('delta:', delta)
+        if debug: print('Delta:', delta)
         Q = newQ.copy()
         i += 1
         deltas.append(delta)
@@ -315,7 +317,7 @@ def getTransitionChances(pos, action, debug=False):
     chances = []
 
     if action == UP:
-        if debug: print('going up')
+        if debug: print('Going up.')
         if pos[0] > 0:
             new_pos = (pos[0] - 1, pos[1])
             chances.append((new_pos, 1 - SLIP))
@@ -323,11 +325,11 @@ def getTransitionChances(pos, action, debug=False):
                 new_pos = (new_pos[0] - 1, new_pos[1])
             chances.append((new_pos, SLIP))
         else:
-            if debug: print('cant move!')
+            if debug: print('Can not move!')
             chances.append((pos, 1.))
 
     if action == DOWN:
-        if debug: print('going down')
+        if debug: print('Going down.')
         if pos[0] < 3:
             new_pos = (pos[0] + 1, pos[1])
             chances.append((new_pos, 1 - SLIP))
@@ -335,11 +337,11 @@ def getTransitionChances(pos, action, debug=False):
                 new_pos = (new_pos[0] + 1, new_pos[1])
             chances.append((new_pos, SLIP))
         else:
-            if debug: print('cant move!')
+            if debug: print('Can not move!')
             chances.append((pos, 1.))
 
     if action == LEFT:
-        if debug: print('going left')
+        if debug: print('Going left.')
         if pos[1] > 0:
             new_pos = (pos[0], pos[1] - 1)
             chances.append((new_pos, 1 - SLIP))
@@ -347,11 +349,11 @@ def getTransitionChances(pos, action, debug=False):
                 new_pos = (new_pos[0], new_pos[1] - 1)
                 chances.append((new_pos, SLIP))
         else:
-            if debug: print('cant move!')
+            if debug: print('Can not move!')
             chances.append((pos, 1.))
 
     if action == RIGHT:
-        if debug: print('going right')
+        if debug: print('Going right.')
         if pos[1] < 3:
             new_pos = (pos[0], pos[1] + 1)
             chances.append((new_pos, 1 - SLIP))
@@ -359,7 +361,7 @@ def getTransitionChances(pos, action, debug=False):
                 new_pos = (new_pos[0], new_pos[1] + 1)
             chances.append((new_pos, SLIP))
         else:
-            if debug: print('cant move!')
+            if debug: print('Can not move!')
             chances.append((pos, 1.))
 
     if len(chances) > 1:
@@ -372,7 +374,7 @@ def getTransitionChances(pos, action, debug=False):
 def getNextState(pos, action, debug=True):
     if debug: print('Starting position:', pos)
     if action == UP:
-        if debug: print('going up')
+        if debug: print('Going up.')
         if pos[0] > 0:
             new_pos = (pos[0] - 1, pos[1])
             if np.random.binomial(1, SLIP):
@@ -381,9 +383,9 @@ def getNextState(pos, action, debug=True):
                 if debug: print('Slipped!')
         else:
             new_pos = pos
-            if debug: print('cant move!')
+            if debug: print('Can not move!')
     if action == DOWN:
-        if debug: print('going down')
+        if debug: print('Going down')
         if pos[0] < 3:
             new_pos = (pos[0] + 1, pos[1])
             if np.random.binomial(1, SLIP):
@@ -392,9 +394,9 @@ def getNextState(pos, action, debug=True):
                 if debug: print('Slipped!')
         else:
             new_pos = pos
-            if debug: print('cant move!')
+            if debug: print('Can not move!')
     if action == LEFT:
-        if debug: print('going left')
+        if debug: print('Going left.')
         if pos[1] > 0:
             new_pos = (pos[0], pos[1] - 1)
             if np.random.binomial(1, SLIP):
@@ -403,9 +405,9 @@ def getNextState(pos, action, debug=True):
                 if debug: print('Slipped!')
         else:
             new_pos = pos
-            if debug: print('cant move!')
+            if debug: print('Can not move!')
     if action == RIGHT:
-        if debug: print('going right')
+        if debug: print('Going right.')
         if pos[1] < 3:
             new_pos = (pos[0], pos[1] + 1)
             if np.random.binomial(1, SLIP):
@@ -414,9 +416,9 @@ def getNextState(pos, action, debug=True):
                 if debug: print('Slipped!')
         else:
             new_pos = pos
-            if debug: print('cant move!')
+            if debug: print('Can not move!')
 
-    if debug: print('new position:', new_pos)
+    if debug: print('New position:', new_pos)
 
     return new_pos
 
