@@ -91,29 +91,25 @@ def plot_deltas(all_deltas):
 
 if __name__ == '__main__':
 	#all_deltas = {}
-	'''
 	task1()
 	input('Press ENTER to continue')
-	print('\n', 150 * '#', '\n')
+	print('\n', 100 * '#', '\n')
 	task2()
 	input('Press ENTER to continue')
-	print('\n', 150 * '#', '\n')
-	'''
+	print('\n', 100 * '#', '\n')
 	results = task3()
 	plot_deltas(results)
 	input('Press ENTER to continue')
-	print('\n', 150 * '#', '\n')
+	print('\n', 100 * '#', '\n')
 	results = task4()
 	plot_deltas(results)
 	input('Press ENTER to continue')
-	print('\n', 150 * '#', '\n')
+	print('\n', 100 * '#', '\n')
 	results = task5()
 	plot_deltas(results)
-	'''
 	input('Press ENTER to continue')
-	print('\n', 150 * '#', '\n')
+	print('\n', 100 * '#', '\n')
 	task7()
-	'''
 	#print(all_deltas)
 	#plot_deltas(all_deltas)
 
