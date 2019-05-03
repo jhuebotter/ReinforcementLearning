@@ -17,10 +17,16 @@ def task1():
 def task2():
 	print('TASK 2:')
 	print('Random policy implementation.')
+	results = {}
 	R, Q, V, states, actions = main.initialize(init=0)
-	main.random_policy(R, Q, V, states, actions, gamma=0.9)
+	for g in np.arange(0.1, 1.1, 0.4):
+		deltas = main.random_policy(R, Q, V, states, actions, gamma=g)
+		results.update({'gamma = %.1f' % g : deltas})
+		print('\n\n')
 	print('Task 2 complete.')
 	print()
+
+	return results
 
 
 def task3():
@@ -30,7 +36,7 @@ def task3():
 	for g in np.arange(0.1, 1.1, 0.4):
 		R, Q, V, states, actions = main.initialize(init=0)
 		deltas = main.value_iteration(R, Q, V, states, actions, gamma=g)
-		results.update({'Value iteration (gamma = %.1f)' % g : deltas})
+		results.update({'gamma = %.1f' % g : deltas})
 		print('\n\n')
 	print('Task 3 complete.')
 	print()
@@ -45,7 +51,7 @@ def task4():
 	for g in np.arange(0.1, 1.1, 0.4):
 		R, Q, V, states, actions = main.initialize(init=0)
 		deltas = main.policy_iteration(R, Q, V, states, actions, gamma=g)
-		results.update({'Howards P.I. (gamma = %.1f)' % g : deltas})
+		results.update({'gamma = %.1f' % g : deltas})
 	print('Task 4 complete.')
 	print()
 
@@ -59,30 +65,55 @@ def task5():
 	for g in np.arange(0.1, 1.1, 0.4):
 		R, Q, V, states, actions = main.initialize(init=0)
 		deltas = main.simple_policy_iteration(R, Q, V, states, actions, gamma=g)
-		results.update({'Simple P.I. (gamma = %.1f)' % g : deltas})
+		results.update({'gamma = %.1f' % g : deltas})
 	print('Task 5 complete.')
 	print()
 
 	return results
 
 
-def task7():
-	print('TASK 7:')
+def task71():
+	print('TASK 7.1:')
 	print('Additional algorithms.')
 	print('Optimistic initialization for Q(t=0)')
-	for i in [-10, -1, 0, 1, 10, 100]:
-		R, Q, V, states, actions = main.initialize(init=i)
-		main.policy_iteration(R, Q, V, states, actions)
-	print('Task 7 complete.')
+	results = {}
+	for i in [100]:
+		for g in np.arange(0.1, 1.1, 0.4):
+			R, Q, V, states, actions = main.initialize(init=i)
+			deltas = main.value_iteration(R, Q, V, states, actions, gamma=g)
+			#main.policy_iteration(R, Q, V, states, actions)
+			results.update({'init = %i, gamma = %.1f' % (i, g) : deltas})
+		print('\n\n')
+	print('Task 7.1 complete.')
 	print()
 
+	return results
 
-def plot_deltas(all_deltas):
+
+def task72():
+	print('TASK 7.2:')
+	print('Additional algorithms.')
+	results = {}
+	print('Pessimistic initialization for Q(t=0)')
+	for i in [-10]:
+		for g in np.arange(0.1, 1.1, 0.4):
+			R, Q, V, states, actions = main.initialize(init=i)
+			deltas = main.value_iteration(R, Q, V, states, actions, gamma=g)
+			#main.policy_iteration(R, Q, V, states, actions)
+			results.update({'init = %i, gamma = %.1f' % (i, g) : deltas})
+			print('\n\n')
+	print('Task 7.2 complete.')
+	print()
+
+	return results
+
+
+def plot_deltas(all_deltas, title):
 
 	for name, deltas in all_deltas.items():
 			plt.plot(np.arange(1,len(deltas)+1), deltas, label=name)
-	plt.title('Maximum Value function update per iteration')
-	plt.xlabel('Iteration')
+	plt.title('Convergance of ' + title)
+	plt.xlabel('Sweeps over state space')
 	plt.ylabel('Delta')
 	plt.legend()
 	plt.show()
@@ -93,23 +124,30 @@ if __name__ == '__main__':
 	#all_deltas = {}
 	task1()
 	input('Press ENTER to continue')
-	print('\n', 100 * '#', '\n')
-	task2()
+	print('\n\n', 100 * '#', '\n\n')
+	results = task2()
+	plot_deltas(results, 'Random Policy')
 	input('Press ENTER to continue')
-	print('\n', 100 * '#', '\n')
+	print('\n\n', 100 * '#', '\n\n')
 	results = task3()
-	plot_deltas(results)
+	plot_deltas(results, 'Value iteration')
 	input('Press ENTER to continue')
-	print('\n', 100 * '#', '\n')
+	print('\n\n', 100 * '#', '\n\n')
 	results = task4()
-	plot_deltas(results)
+	plot_deltas(results, 'Howard´s Policy Iteration')
 	input('Press ENTER to continue')
-	print('\n', 100 * '#', '\n')
+	print('\n\n', 100 * '#', '\n\n')
 	results = task5()
-	plot_deltas(results)
+	plot_deltas(results, 'Simple Policy Iteration')
 	input('Press ENTER to continue')
-	print('\n', 100 * '#', '\n')
-	task7()
+	print('\n\n', 100 * '#', '\n\n')
+	results = task71()
+	plot_deltas(results, 'VI with Optimistic value initialization')
+	input('Press ENTER to continue')
+	print('\n\n', 100 * '#', '\n\n')
+	results = task72()
+	plot_deltas(results, 'VI with Pessimistic value initialization')
+
 	#print(all_deltas)
 	#plot_deltas(all_deltas)
 

@@ -55,20 +55,23 @@ def initialize(init=0):
 
     actions = [UP, RIGHT, DOWN, LEFT]
 
+    V = np.ones((4, 4))
+    V *= init
+
     for i in range(4):
         for j in range(4):
             states.append((i, j))
             if (i, j) in CRACK:
                 R[i, j] = -10
+                V[i, j] = 0
             elif (i, j) == SHIP:
                 R[i, j] = 20
             elif (i, j) == GOAL:
                 R[i, j] = 100
+                V[i, j] = 0
             else:
                 R[i, j] = 0
 
-    V = np.ones((4, 4))
-    V *= init
     Q = np.ones((len(states), len(actions)))
     Q *= init
 
@@ -103,6 +106,9 @@ def random_policy(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3), d
         Q = newQ.copy()
         i += 1
         deltas.append(delta)
+        print()
+        print('State values after iteration %i:' % i)
+        print(V)
         if delta < theta:
             break
 
@@ -110,7 +116,9 @@ def random_policy(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3), d
     runtime = (t1 - t0) / 1000000
     print()
     print('Random policy iteration converged')
+    print('Gamma:', gamma)
     print('Runtime in ms: ', runtime)
+    print('Number of sweeps over state space:', len(deltas))
     print('State values after iteration %i:' % i)
     print(V)
     
@@ -160,7 +168,9 @@ def policy_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3)
     runtime = (t1 - t0) / 1000000
     print()
     print('Policy iteration converged')
+    print('Gamma:', gamma)
     print('Runtime in ms: ', runtime)
+    print('Number of sweeps over state space:', len(deltas))
     print('Final tate values after iteration %i:' % i)
     print(V)
 
@@ -192,7 +202,6 @@ def simple_policy_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=floa
 
         policy_stable = True
         # here we improve the policy by being greedy over all actions possible at each state
-        print('improve') 
         for state in [s for s in states if s not in TERMINAL]:
             b = pi[states.index(state)].copy()
             pi[states.index(state)] = np.argmax([sum([p * (R[next_state] + gamma * V[next_state]) for (next_state, p) in getTransitionChances(state, a)]) for a in actions])
@@ -211,7 +220,9 @@ def simple_policy_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=floa
     runtime = (t1 - t0) / 1000000
     print()
     print('Simple policy iteration converged')
+    print('Gamma:', gamma)
     print('Runtime in ms: ', runtime)
+    print('Number of sweeps over state space:', len(deltas))
     print('Final state values after iteration %i:' % i)
     print(V)
 
@@ -239,6 +250,9 @@ def value_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3))
         V = newV.copy()
         i += 1
         deltas.append(delta)
+        print()
+        print('State values after iteration %i:' % i)
+        print(V)
         if delta < theta:
             break
     
@@ -246,7 +260,9 @@ def value_iteration(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3))
     runtime = (t1 - t0) / 1000000
     print()
     print('Value iteration converged')
+    print('Gamma:', gamma)
     print('Runtime in ms: ', runtime)
+    print('Number of sweeps over state space:', len(deltas))
     print('State values after iteration %i:' % i)
     print(V)
 
