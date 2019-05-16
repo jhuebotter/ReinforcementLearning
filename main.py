@@ -26,7 +26,7 @@ def main():
 
     while True:
         R, Q, V, states, actions = initialize(init=0)
-        user_input = input("What method would you like to use? Choose from: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.  \n"
+        user_input = input("What method would you like to use? Choose from: <q learning>, <soft max>, <sarsa>, <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.  \n"
                            "USER INPUT: ").lower()
 
         if user_input == "random policy":
@@ -92,10 +92,10 @@ def q_learning(R, Q, states, actions, epsilon=EPSILON,
 
     t0 = time.time_ns()
     Gs = []
-    G = 0
-    for e in np.arange(n_episodes):
+    #G = 0
+    for e in np.arange(1, n_episodes+1):
         state = START
-        #G = 0
+        G = 0
         print('Beginning episode', e)
         while state not in TERMINAL:
             
@@ -145,7 +145,7 @@ def soft_max(R, Q, states, actions, epsilon=EPSILON,
     t0 = time.time_ns()
     Gs = []
     G = 0
-    for e in np.arange(n_episodes):
+    for e in np.arange(1, n_episodes+1):
         state = START
         #G = 0
         print()
@@ -188,7 +188,7 @@ def sarsa(R, Q, states, actions, epsilon=EPSILON,
     t0 = time.time_ns()
     Gs = []
     G = 0
-    for e in np.arange(n_episodes):
+    for e in np.arange(1, n_episodes+1):
         state = START
         #G = 0
         print()

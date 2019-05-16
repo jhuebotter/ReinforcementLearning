@@ -11,11 +11,11 @@ plt.style.use('ggplot')
 
 def task8():
 	print('TASK 8:')
-	print('Q learning on 1000 episodes and three different learning rates.')
+	print('Q learning on 100 episodes and three different learning rates.')
 	results = {}
 	R, Q, V, states, actions = main.initialize(init=0)
-	for i in [0.2, 0.1, 0.05, 0.01, 0.001]:
-		Gs = main.q_learning(R, Q, states, actions, lr=i, n_episodes=1000)
+	for i in [0.5, 0.1, 0.01, 0.001, 0.0001]:
+		Gs = main.q_learning(R, Q, states, actions, lr=i, epsilon=0.05, n_episodes=100)
 		results.update({'lr = %.3f' % i: Gs})
 		print('\n\n')
 	print('Task 8 complete.')
@@ -26,11 +26,11 @@ def task8():
 
 def task9():
 	print('TASK 9:')
-	print('Soft Max exploration strategy on 1000 episodes and three different learning rates.')
+	print('Soft Max exploration strategy on 100 episodes and three different learning rates.')
 	results = {}
 	R, Q, V, states, actions = main.initialize(init=0)
-	for i in [0.2, 0.1, 0.05, 0.01, 0.001]:
-		Gs = main.soft_max(R, Q, states, actions, lr=i, n_episodes=1000)
+	for i in [0.5, 0.1, 0.01, 0.001]:
+		Gs = main.soft_max(R, Q, states, actions, lr=i, n_episodes=100)
 		results.update({'lr = %.3f' % i: Gs})
 		print('\n\n')
 	print('Task 9 complete.')
@@ -41,10 +41,11 @@ def task9():
 
 def task10():
 	print('TASK 10:')
-	print('SARSA on 1000 episodes and three different learning rates.')
+	print('SARSA on 100 episodes and three different learning rates.')
 	results = {}
-	for i in [0.2, 0.1, 0.05, 0.01, 0.001]:
-		Gs = main.sarsa(R, Q, states, actions, lr=i, n_episodes=1000)
+	R, Q, V, states, actions = main.initialize(init=0)
+	for i in [0.5, 0.1, 0.01, 0.001]:
+		Gs = main.sarsa(R, Q, states, actions, lr=i, n_episodes=100)
 		results.update({'lr = %.3f' % i: Gs})
 		print('\n\n')
 	print('Task 10 complete.')
@@ -67,6 +68,7 @@ def plot_results(results, title):
 if __name__ == '__main__':
 	results = task8()
 	plot_results(results, 'Q Learning')
+	'''
 	input('Press ENTER to continue')
 	print('\n\n', 100 * '#', '\n\n')
 	results = task9()
@@ -75,3 +77,4 @@ if __name__ == '__main__':
 	print('\n\n', 100 * '#', '\n\n')
 	results = task10()
 	plot_results(results, 'SARSA')
+	'''
