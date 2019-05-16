@@ -66,7 +66,7 @@ def plot_results(results, title):
 
 
 if __name__ == '__main__':
-	results = task8()
+	results = task10()
 	plot_results(results, 'Q Learning')
 	'''
 	input('Press ENTER to continue')
