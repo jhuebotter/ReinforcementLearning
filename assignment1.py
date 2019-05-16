@@ -1,4 +1,4 @@
-''' Assignment: mainning & Reinforcement Learning Assignment 1
+''' Assignment: Planning & Reinforcement Learning Assignment 1
     By: Justus Hübotter (2617135), Florence van der Voort (2652198), Stefan Wijtsma (2575874)
     Created @ April 2019'''
 
@@ -125,7 +125,6 @@ def plot_deltas(all_deltas, title):
 
 
 if __name__ == '__main__':
-	#all_deltas = {}
 	task1()
 	input('Press ENTER to continue')
 	print('\n\n', 100 * '#', '\n\n')
@@ -151,7 +150,3 @@ if __name__ == '__main__':
 	print('\n\n', 100 * '#', '\n\n')
 	results = task72()
 	plot_deltas(results, 'VI with Pessimistic value initialization')
-
-	#print(all_deltas)
-	#plot_deltas(all_deltas)
-
