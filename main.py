@@ -26,7 +26,7 @@ def main():
 
     while True:
         R, Q, V, states, actions = initialize(init=0)
-        user_input = input("What method would you like to use? Choose from: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.  \n"
+        user_input = input("What method would you like to use? Choose from: <Q-Learning>, <Soft Max>, <SARSA>, <manual> or <exit>.  \n"
                            "USER INPUT: ").lower()
 
         if user_input == "random policy":
@@ -37,9 +37,9 @@ def main():
             policy_iteration(R, Q, V, states, actions)
         elif user_input == "simple policy iteration":
             simple_policy_iteration(R, Q, V, states, actions)
-        elif user_input == "q learning":
+        elif user_input == "q-learning":
             q_learning(R, Q, states, actions)
-        elif user_input == "soft max":
+        elif user_input == "Soft Max":
             soft_max(R, Q, states, actions)
         elif user_input == "sarsa":
             sarsa(R, Q, states, actions)
@@ -49,7 +49,7 @@ def main():
             sys.exit()
         else:
             print("Invalid input. \n "
-                  "Please choose between: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.")
+                  "Please choose between: <Q-Learning>, <Soft Max>, <SARSA>, <manual> or <exit>.")
             continue
 
 
@@ -193,17 +193,37 @@ def sarsa(R, Q, states, actions, epsilon=EPSILON,
         #G = 0
         print()
         print('Beginning episode', e)
-        #while state not in TERMINAL:
-            
-            # insert algorithm here 
+        # Epsilon greedy
+        if np.random.binomial(1, epsilon):
+            # with chance of epsilon, pick a random action
+            action = np.random.choice(actions)
+        else:
+            # otherwise pick a random action amongst the highest q value only
+            best = np.argwhere(Q[states.index(state)] == np.max(Q[states.index(state)])).flatten()
+            action = np.random.choice(best)
 
-            # pick action
-
+        while state not in TERMINAL:
             # get new state
+            next_state = getNextState(state, action, debug=False)
 
             # get reward
+            r = R[next_state]
+            G += r
+
+            # Choose action
+            if np.random.binomial(1, epsilon):
+                # with chance of epsilon, pick a random action
+                next_action = np.random.choice(actions)
+            else:
+                # otherwise pick a random action amongst the highest q value only
+                best = np.argwhere(Q[states.index(next_state)]==np.max(Q[states.index(next_state)])).flatten()
+                next_action = np.random.choice(best)
 
             # update q
+            Q[states.index(state)][action] += lr * (r + gamma * Q[states.index(next_state)][next_action] - Q[states.index(state)][action])
+
+            state = next_state
+            action = next_action
 
         print('Completed episode', e)
         print('Cummulative Reward:', G)
