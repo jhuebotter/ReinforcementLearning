@@ -16,7 +16,8 @@ GOAL = (0, 3)
 START = (3, 0)
 SLIP = 0.05
 DISCOUNT = 0.9
-EPSILON = 1
+EPSILON = 0.05
+LEARNING_RATE = 0.1
 TERMINAL = [x for x in CRACK]
 TERMINAL.append(GOAL)
 
@@ -26,21 +27,25 @@ def main():
     while True:
         R, Q, V, states, actions = initialize(init=0)
         user_input = input("What method would you like to use? Choose from: <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.  \n"
-                           "USER INPUT: ")
+                           "USER INPUT: ").lower()
 
-        if user_input.lower() == "random policy":
+        if user_input == "random policy":
             random_policy(R, Q, V, states, actions)
-        elif user_input.lower() == "value iteration":
+        elif user_input == "value iteration":
             value_iteration(R, Q, V, states, actions)
-        elif user_input.lower() == "policy iteration":
+        elif user_input == "policy iteration":
             policy_iteration(R, Q, V, states, actions)
-        elif user_input.lower() == "backup policy iteration":
-            backup_policy_iteration(R, Q, V, states, actions)
-        elif user_input.lower() == "simple policy iteration":
+        elif user_input == "simple policy iteration":
             simple_policy_iteration(R, Q, V, states, actions)
-        elif user_input.lower() == "manual":
+        elif user_input == "q learning":
+            q_learning(R, Q, states, actions)
+        elif user_input == "soft max":
+            soft_max(R, Q, states, actions)
+        elif user_input == "sarsa":
+            sarsa(R, Q, states, actions)
+        elif user_input == "manual":
             manual(R)
-        elif user_input.lower() == "exit":
+        elif user_input == "exit":
             sys.exit()
         else:
             print("Invalid input. \n "
@@ -76,6 +81,143 @@ def initialize(init=0):
     Q *= init
 
     return R, Q, V, states, actions
+
+
+def q_learning(R, Q, states, actions, epsilon=EPSILON,
+    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
+    print('Starting Q learning')
+    print('Discount factor:', gamma)
+    print('Epsilon:', epsilon)
+    print('Learning rate:', lr)
+
+    t0 = time.time_ns()
+    Gs = []
+    G = 0
+    for e in np.arange(n_episodes):
+        state = START
+        #G = 0
+        print('Beginning episode', e)
+        while state not in TERMINAL:
+            
+            # This is epsilon-greedy
+            if np.random.binomial(1, epsilon):
+                # with chance of epsilon, pick a random action
+                action = np.random.choice(actions)
+            else:
+                # otherwise pick a random action amongst the highest q value only
+                best = np.argwhere(Q[states.index(state)]==np.max(Q[states.index(state)])).flatten()
+                action = np.random.choice(best)
+
+            # get next state
+            next_state = getNextState(state, action, debug=False)
+
+            # get reward
+            r = R[next_state]
+            G += r
+
+            # update q
+            Q[states.index(state)][action] += lr * (r + gamma * np.max(Q[states.index(next_state)]) - Q[states.index(state)][action])
+
+            state = next_state
+
+        print('Completed episode', e)
+        print('Cummulative Reward:', G)
+        print('Q:')
+        print(Q)
+        Gs.append(G)
+
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
+    print()
+    print('Q Learning completed')
+    print('Runtime in ms: ', runtime)
+
+    return Gs
+
+
+def soft_max(R, Q, states, actions, epsilon=EPSILON,
+    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
+    print('Starting Soft Max exploration')
+    print('Discount factor:', gamma)
+    print('Epsilon:', epsilon)
+    print('Learning rate:', lr)
+
+    t0 = time.time_ns()
+    Gs = []
+    G = 0
+    for e in np.arange(n_episodes):
+        state = START
+        #G = 0
+        print()
+        print('Beginning episode', e)
+        #while state not in TERMINAL:
+            
+            # insert algorithm here 
+
+            # pick action
+
+            # get new state
+
+            # get reward
+
+            # update q
+
+        print('Completed episode', e)
+        print('Cummulative Reward:', G)
+        print('Q:')
+        print(Q)
+        Gs.append(G)
+
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
+    print()
+    print('Soft Max exploration completed')
+    print('Runtime in ms: ', runtime)
+
+    return Gs
+
+
+
+def soft_max(R, Q, states, actions, epsilon=EPSILON,
+    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
+    print('Starting SARSA')
+    print('Discount factor:', gamma)
+    print('Epsilon:', epsilon)
+    print('Learning rate:', lr)
+
+    t0 = time.time_ns()
+    Gs = []
+    G = 0
+    for e in np.arange(n_episodes):
+        state = START
+        #G = 0
+        print()
+        print('Beginning episode', e)
+        #while state not in TERMINAL:
+            
+            # insert algorithm here 
+
+            # pick action
+
+            # get new state
+
+            # get reward
+
+            # update q
+
+        print('Completed episode', e)
+        print('Cummulative Reward:', G)
+        print('Q:')
+        print(Q)
+        Gs.append(G)
+
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
+    print()
+    print('SARSA completed')
+    print('Runtime in ms: ', runtime)
+
+    return Gs
 
 
 def random_policy(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3), debug=False):
