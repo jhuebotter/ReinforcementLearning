@@ -43,7 +43,6 @@ def task10():
 	print('TASK 10:')
 	print('SARSA on 1000 episodes and three different learning rates.')
 	results = {}
-	for g in np.arange(0.1, 1.1, 0.4):
 	for i in [0.2, 0.1, 0.05, 0.01, 0.001]:
 		Gs = main.sarsa(R, Q, states, actions, lr=i, n_episodes=1000)
 		results.update({'lr = %.3f' % i: Gs})

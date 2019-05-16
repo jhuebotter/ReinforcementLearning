@@ -178,7 +178,7 @@ def soft_max(R, Q, states, actions, epsilon=EPSILON,
 
 
 
-def soft_max(R, Q, states, actions, epsilon=EPSILON,
+def sarsa(R, Q, states, actions, epsilon=EPSILON,
     gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
     print('Starting SARSA')
     print('Discount factor:', gamma)
