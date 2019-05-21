@@ -83,7 +83,7 @@ def plot_results(results, title, savefig=True):
 		#ax.fill_between(X, Y.min(axis=0), Y.max(axis=0), alpha=0.2)
 	plt.title('Performance of ' + title)
 	plt.xlabel('Episodes')
-	plt.ylabel('Mean cummulative reward')
+	plt.ylabel('Mean cumulative reward')
 	plt.legend()
 	plt.tight_layout()
 	if savefig:
