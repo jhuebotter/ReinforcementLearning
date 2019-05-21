@@ -98,7 +98,6 @@ def q_learning(R, Q, V, states, actions, epsilon=EPSILON,
     for e in np.arange(1, n_episodes+1):
         state = START
         G = 0
-        #step = 1
         while state not in TERMINAL:
             
             # This is epsilon-greedy
@@ -116,18 +115,12 @@ def q_learning(R, Q, V, states, actions, epsilon=EPSILON,
             # get reward
             r = R[next_state]
             G = r + (G * gamma)
-            #G += r * (gamma ** step)
 
             # update q
             Q[states.index(state)][action] += lr * (r + gamma * np.max(Q[states.index(next_state)]) - Q[states.index(state)][action])
 
             state = next_state
-            #step += 1
 
-        #print('Completed episode', e)
-        #print('Cummulative Reward:', G)
-        #print('Q:')
-        #print(Q)
         Gs.append(G)
 
     t1 = time.time_ns()
@@ -148,6 +141,7 @@ def q_learning(R, Q, V, states, actions, epsilon=EPSILON,
 
 def softmax(x, t=1.):
     #Compute softmax values for each sets of scores in x.
+    x = x.copy()
     x -= np.max(x)
     return np.exp(np.array(x)/(t + 1e-16)) / np.sum(np.exp(np.array(x)/(t + 1e-16)), axis=0)
 
@@ -166,38 +160,24 @@ def soft_max(R, Q, V, states, actions, temperature=TEMPERATURE,
     for e in np.arange(1, n_episodes+1):
         state = START
         G = 0
-        #step = 1
         while state not in TERMINAL:
             
             # pick action
             p = softmax(Q[states.index(state)], t=temperature)
-            #print()
-            #print(Q[states.index(state)])
-            #print(p)
             action = np.random.choice(actions, p=p)
-            #print(action)
 
             # get next state
-            next_state = getNextState(state, action, debug=True)
+            next_state = getNextState(state, action, debug=False)
 
             # get reward
             r = R[next_state]
             G = r + (G * gamma)
 
             # update q
-            print('vorher:', Q[states.index(state)][action])
             Q[states.index(state)][action] += lr * (r + gamma * np.max(Q[states.index(next_state)]) - Q[states.index(state)][action])
-            print('nachher:', Q[states.index(state)][action])
+
             state = next_state
-            #step += 1
-            #print(G)
-        print('Completed episode', e)
-        print('Cummulative Reward:', G)
-        for state in states:
-            V[state] = np.max(Q[states.index(state)]).copy()
-        print('V:\n', V)
-        #print('Q:')
-        #print(Q)
+
         Gs.append(G)
 
     t1 = time.time_ns()
@@ -209,7 +189,7 @@ def soft_max(R, Q, V, states, actions, temperature=TEMPERATURE,
     print('Q:\n', Q)
 
     for state in states:
-            V[state] = np.max(Q[states.index(state)])
+            V[state] = np.max(Q[states.index(state)]).copy()
     print('V:\n', V)
 
     return Gs
@@ -262,13 +242,7 @@ def sarsa(R, Q, V, states, actions, epsilon=EPSILON,
 
             state = next_state
             action = next_action
-            #step += 1
 
-        #print('Completed episode', e)
-        #print('Cummulative Reward:', G)
-        #print()
-        #print('Q:')
-        #print(Q)
         Gs.append(G)
 
     t1 = time.time_ns()

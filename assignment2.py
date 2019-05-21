@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 plt.style.use('ggplot')
 
-RUNS = 5
-EPISODES = 10
+RUNS = 100
+EPISODES = 1000
 LEARNING_RATE = 0.1
 
 
@@ -36,7 +36,7 @@ def task9():
 	print('TASK 9:')
 	print(f'{RUNS} Runs of Soft Max exploration strategy on {EPISODES} episodes and three different learning rates.')
 	results = {}
-	for i in [1.0]:
+	for i in [1.0, 20.0]:
 		run = []
 		for k in range(RUNS):
 			R, Q, V, states, actions = main.initialize(init=0)
@@ -93,13 +93,13 @@ def plot_results(results, title, savefig=True):
 
 
 if __name__ == '__main__':
-	results = task8()
-	plot_results(results, 'Q Learning')
+	#results = task8()
+	#plot_results(results, 'Q Learning')
 	#input('Press ENTER to continue')
-	print('\n\n', 100 * '#', '\n\n')
+	#print('\n\n', 100 * '#', '\n\n')
 	results = task9()
 	plot_results(results, 'Soft Max')
 	#input('Press ENTER to continue')
-	print('\n\n', 100 * '#', '\n\n')
-	results = task10()
-	plot_results(results, 'SARSA')
+	#print('\n\n', 100 * '#', '\n\n')
+	#results = task10()
+	#plot_results(results, 'SARSA')
