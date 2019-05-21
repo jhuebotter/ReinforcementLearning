@@ -112,7 +112,7 @@ def plot_deltas(all_deltas, title):
 
 	for name, deltas in all_deltas.items():
 			plt.plot(np.arange(1,len(deltas)+1), deltas, label=name)
-	plt.title('Convergance of ' + title)
+	plt.title('Convergence of ' + title)
 	plt.xlabel('Sweeps over state space')
 	plt.ylabel('Delta')
 	plt.legend()
