@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 RUNS = 100
-EPISODES = 1000
+EPISODES = 500
 LEARNING_RATE = 0.1
 
 
@@ -93,13 +93,13 @@ def plot_results(results, title, savefig=True):
 
 
 if __name__ == '__main__':
-	#results = task8()
-	#plot_results(results, 'Q Learning')
+	results = task8()
+	plot_results(results, 'Q Learning')
 	#input('Press ENTER to continue')
-	#print('\n\n', 100 * '#', '\n\n')
+	print('\n\n', 100 * '#', '\n\n')
 	results = task9()
 	plot_results(results, 'Soft Max')
 	#input('Press ENTER to continue')
-	#print('\n\n', 100 * '#', '\n\n')
-	#results = task10()
-	#plot_results(results, 'SARSA')
+	print('\n\n', 100 * '#', '\n\n')
+	results = task10()
+	plot_results(results, 'SARSA')
