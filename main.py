@@ -18,6 +18,7 @@ SLIP = 0.05
 DISCOUNT = 0.9
 EPSILON = 0.05
 LEARNING_RATE = 0.1
+TEMPERATURE = 1.0
 TERMINAL = [x for x in CRACK]
 TERMINAL.append(GOAL)
 
@@ -27,7 +28,7 @@ def main():
     while True:
         R, Q, V, states, actions = initialize(init=0)
         #user_input = input("What method would you like to use? Choose from: <q learning>, <soft max>, <sarsa>, <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.  \n"
-        user_input = input("What method would you like to use? Choose from: <Q-Learning>, <Soft Max>, <SARSA>, <manual> or <exit>.  \n"
+        user_input = input("What method would you like to use? Choose from: <Q Learning>, <Soft Max>, <SARSA>, <manual> or <exit>.  \n"
                            "USER INPUT: ").lower()
 
         if user_input == "random policy":
@@ -38,12 +39,12 @@ def main():
             policy_iteration(R, Q, V, states, actions)
         elif user_input == "simple policy iteration":
             simple_policy_iteration(R, Q, V, states, actions)
-        elif user_input == "q-learning":
-            q_learning(R, Q, states, actions)
-        elif user_input == "Soft Max":
-            soft_max(R, Q, states, actions)
+        elif user_input == "q learning":
+            q_learning(R, Q, V, states, actions)
+        elif user_input == "soft max":
+            soft_max(R, Q, V, states, actions)
         elif user_input == "sarsa":
-            sarsa(R, Q, states, actions)
+            sarsa(R, Q, V, states, actions)
         elif user_input == "manual":
             manual(R)
         elif user_input == "exit":
@@ -84,20 +85,20 @@ def initialize(init=0):
     return R, Q, V, states, actions
 
 
-def q_learning(R, Q, states, actions, epsilon=EPSILON,
+def q_learning(R, Q, V, states, actions, epsilon=EPSILON,
     gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
     print('Starting Q learning')
+    print('Episodes: ', n_episodes)
     print('Discount factor:', gamma)
     print('Epsilon:', epsilon)
     print('Learning rate:', lr)
 
     t0 = time.time_ns()
     Gs = []
-    #G = 0
     for e in np.arange(1, n_episodes+1):
         state = START
         G = 0
-        print('Beginning episode', e)
+        #step = 1
         while state not in TERMINAL:
             
             # This is epsilon-greedy
@@ -114,59 +115,89 @@ def q_learning(R, Q, states, actions, epsilon=EPSILON,
 
             # get reward
             r = R[next_state]
-            G += r
+            G = r + (G * gamma)
+            #G += r * (gamma ** step)
 
             # update q
             Q[states.index(state)][action] += lr * (r + gamma * np.max(Q[states.index(next_state)]) - Q[states.index(state)][action])
 
             state = next_state
+            #step += 1
 
-        print('Completed episode', e)
-        print('Cummulative Reward:', G)
-        print('Q:')
-        print(Q)
+        #print('Completed episode', e)
+        #print('Cummulative Reward:', G)
+        #print('Q:')
+        #print(Q)
         Gs.append(G)
 
     t1 = time.time_ns()
     runtime = (t1 - t0) / 1000000
     print()
     print('Q Learning completed')
+    print('Mean Cummulative Reward:', np.mean(Gs))
     print('Runtime in ms: ', runtime)
+    print('Q:\n', Q)
+
+    for state in states:
+            V[state] = np.max(Q[states.index(state)])
+    print('V:\n', V)
+    print()
 
     return Gs
 
 
-def soft_max(R, Q, states, actions, epsilon=EPSILON,
+def softmax(x, t=1.):
+    #Compute softmax values for each sets of scores in x.
+    x -= np.max(x)
+    return np.exp(np.array(x)/(t + 1e-16)) / np.sum(np.exp(np.array(x)/(t + 1e-16)), axis=0)
+
+
+
+def soft_max(R, Q, V, states, actions, temperature=TEMPERATURE,
     gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
     print('Starting Soft Max exploration')
+    print('Episodes: ', n_episodes)
     print('Discount factor:', gamma)
-    print('Epsilon:', epsilon)
+    print('temperature:', temperature)
     print('Learning rate:', lr)
 
     t0 = time.time_ns()
     Gs = []
-    G = 0
     for e in np.arange(1, n_episodes+1):
         state = START
-        #G = 0
-        print()
-        print('Beginning episode', e)
-        #while state not in TERMINAL:
+        G = 0
+        #step = 1
+        while state not in TERMINAL:
             
-            # insert algorithm here 
-
             # pick action
+            p = softmax(Q[states.index(state)], t=temperature)
+            #print()
+            #print(Q[states.index(state)])
+            #print(p)
+            action = np.random.choice(actions, p=p)
+            #print(action)
 
-            # get new state
+            # get next state
+            next_state = getNextState(state, action, debug=True)
 
             # get reward
+            r = R[next_state]
+            G = r + (G * gamma)
 
             # update q
-
+            print('vorher:', Q[states.index(state)][action])
+            Q[states.index(state)][action] += lr * (r + gamma * np.max(Q[states.index(next_state)]) - Q[states.index(state)][action])
+            print('nachher:', Q[states.index(state)][action])
+            state = next_state
+            #step += 1
+            #print(G)
         print('Completed episode', e)
         print('Cummulative Reward:', G)
-        print('Q:')
-        print(Q)
+        for state in states:
+            V[state] = np.max(Q[states.index(state)]).copy()
+        print('V:\n', V)
+        #print('Q:')
+        #print(Q)
         Gs.append(G)
 
     t1 = time.time_ns()
@@ -174,26 +205,31 @@ def soft_max(R, Q, states, actions, epsilon=EPSILON,
     print()
     print('Soft Max exploration completed')
     print('Runtime in ms: ', runtime)
+    print('Mean Cummulative Reward:', np.mean(Gs))
+    print('Q:\n', Q)
+
+    for state in states:
+            V[state] = np.max(Q[states.index(state)])
+    print('V:\n', V)
 
     return Gs
 
 
 
-def sarsa(R, Q, states, actions, epsilon=EPSILON,
+def sarsa(R, Q, V, states, actions, epsilon=EPSILON,
     gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
     print('Starting SARSA')
+    print('Episodes: ', n_episodes)
     print('Discount factor:', gamma)
     print('Epsilon:', epsilon)
     print('Learning rate:', lr)
 
     t0 = time.time_ns()
     Gs = []
-    G = 0
     for e in np.arange(1, n_episodes+1):
         state = START
-        #G = 0
-        print()
-        print('Beginning episode', e)
+        G = 0
+        step = 1
         # Epsilon greedy
         if np.random.binomial(1, epsilon):
             # with chance of epsilon, pick a random action
@@ -209,7 +245,8 @@ def sarsa(R, Q, states, actions, epsilon=EPSILON,
 
             # get reward
             r = R[next_state]
-            G += r
+            G = r + (G * gamma)
+            #G += r * (gamma ** step)
 
             # Choose action
             if np.random.binomial(1, epsilon):
@@ -225,11 +262,13 @@ def sarsa(R, Q, states, actions, epsilon=EPSILON,
 
             state = next_state
             action = next_action
+            #step += 1
 
-        print('Completed episode', e)
-        print('Cummulative Reward:', G)
-        print('Q:')
-        print(Q)
+        #print('Completed episode', e)
+        #print('Cummulative Reward:', G)
+        #print()
+        #print('Q:')
+        #print(Q)
         Gs.append(G)
 
     t1 = time.time_ns()
@@ -237,6 +276,12 @@ def sarsa(R, Q, states, actions, epsilon=EPSILON,
     print()
     print('SARSA completed')
     print('Runtime in ms: ', runtime)
+    print('Mean Cummulative Reward:', np.mean(Gs))
+    print('Q:\n', Q)
+
+    for state in states:
+            V[state] = np.max(Q[states.index(state)])
+    print('V:\n', V)
 
     return Gs
 
