@@ -45,6 +45,8 @@ def main():
             soft_max(R, Q, V, states, actions)
         elif user_input == "sarsa":
             sarsa(R, Q, V, states, actions)
+        elif user_input == "qet":
+            q__et(R, Q, V, states, actions)
         elif user_input == "manual":
             manual(R)
         elif user_input == "exit":
@@ -256,6 +258,84 @@ def sarsa(R, Q, V, states, actions, epsilon=EPSILON,
     for state in states:
             V[state] = np.max(Q[states.index(state)])
     print('V:\n', V)
+
+    return Gs
+
+
+def q__et(R, Q, V, states, actions, epsilon=EPSILON,
+               gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
+    print('Starting Q learning with eligibility traces')
+    #print('Episodes: ', n_episodes)
+    #print('Discount factor:', gamma)
+    #print('Epsilon:', epsilon)
+    #print('Learning rate:', lr)
+
+    lamb = 0.5
+
+    t0 = time.time_ns()
+    Gs = []
+    e_sa = np.zeros(Q.shape)                            # 4 by 16 table
+    for e in np.arange(1, n_episodes + 1):
+        # Initialize (s,a)
+        state = START                                   # Starting coordinates
+        action = np.random.choice(actions)              # Random action (0 to 3)
+        G = 0
+        while state not in TERMINAL:
+
+            # Observe next_state
+            next_state = getNextState(state, action, debug=False)    # Coordinates next state
+            print(next_state)
+
+            # Observe reward
+            r = R[next_state]
+            G = r + (G * gamma)
+
+
+            # Choosing action from policy
+            if np.random.binomial(1, epsilon):
+                # with chance of epsilon, pick a random action
+                next_action = np.random.choice(actions)
+            else:
+                # otherwise pick a random action amongst the highest q value only
+                best = np.argwhere(Q[states.index(next_state)] == np.max(Q[states.index(next_state)])).flatten()
+                next_action = np.random.choice(best)
+
+            # Determine a^*
+            best_next_action = np.argmax(Q[next_state])
+
+            # Determine budew-looking thing (TD_error)
+            budew = r + gamma * Q[states.index(next_state)][best_next_action] - Q[states.index(state)][action]
+
+            # Update e(s,a)
+            e_sa[states.index(state)][action] = e_sa[states.index(state)][action] + 1
+
+            for s in states:                # s = coordinates
+                for a in actions:           # a = value from 0 to 3
+                    Q[states.index(s)][a] = Q[states.index(s)][a] + lr * budew * e_sa[s][a]
+                    if next_action == best_next_action:
+                        e_sa[states.index(state)][action] = gamma * lamb * e_sa[s][a]
+                    else:
+                        e_sa[states.index(state)][action] = 0
+
+            state = next_state
+            action = next_action
+
+
+
+        Gs.append(G)
+
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
+    print()
+    print('Q Eligibility Traces completed')
+    print('Mean Cummulative Reward:', np.mean(Gs))
+    print('Runtime in ms: ', runtime)
+    print('Q:\n', Q)
+
+    for state in states:
+        V[state] = np.max(Q[states.index(state)])
+    print('V:\n', V)
+    print()
 
     return Gs
 
