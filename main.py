@@ -284,7 +284,6 @@ def q__et(R, Q, V, states, actions, epsilon=EPSILON,
 
             # Observe next_state
             next_state = getNextState(state, action, debug=False)    # Coordinates next state
-            print(next_state)
 
             # Observe reward
             r = R[next_state]
@@ -311,11 +310,11 @@ def q__et(R, Q, V, states, actions, epsilon=EPSILON,
 
             for s in states:                # s = coordinates
                 for a in actions:           # a = value from 0 to 3
-                    Q[states.index(s)][a] = Q[states.index(s)][a] + lr * budew * e_sa[s][a]
+                    Q[states.index(s)][a] = Q[states.index(s)][a] + lr * budew * e_sa[states.index(s)][a]
                     if next_action == best_next_action:
-                        e_sa[states.index(state)][action] = gamma * lamb * e_sa[s][a]
+                        e_sa[states.index(s)][a] = gamma * lamb * e_sa[states.index(s)][a]
                     else:
-                        e_sa[states.index(state)][action] = 0
+                        e_sa[states.index(s)][a] = 0
 
             state = next_state
             action = next_action
