@@ -28,7 +28,7 @@ def main():
     while True:
         R, Q, V, states, actions = initialize(init=0)
         #user_input = input("What method would you like to use? Choose from: <q learning>, <soft max>, <sarsa>, <random policy>, <value iteration>, <policy iteration>, <simple policy iteration>, <manual> or <exit>.  \n"
-        user_input = input("What method would you like to use? Choose from: <Q Learning>, <Soft Max>, <SARSA>, <manual> or <exit>.  \n"
+        user_input = input("What method would you like to use? Choose from: <Q Learning>, <Soft Max>, <SARSA>, <Double Q Learning>, <manual> or <exit>.  \n"
                            "USER INPUT: ").lower()
 
         if user_input == "random policy":
@@ -40,18 +40,21 @@ def main():
         elif user_input == "simple policy iteration":
             simple_policy_iteration(R, Q, V, states, actions)
         elif user_input == "q learning":
-            q_learning(R, Q, V, states, actions)
+            q_learning(R, Q, V, states, actions, verbose=True)
+        elif user_input == "double q learning":
+            double_q_learning(R, Q, V, states, actions, verbose=True)
+        elif user_input == "eligibility traces":
+            q_learning_et(R, Q, V, states, actions, verbose=True)
         elif user_input == "soft max":
-            soft_max(R, Q, V, states, actions)
+            soft_max(R, Q, V, states, actions, verbose=True)
         elif user_input == "sarsa":
-            sarsa(R, Q, V, states, actions)
+            sarsa(R, Q, V, states, actions, verbose=True)
         elif user_input == "manual":
             manual(R)
         elif user_input == "exit":
             sys.exit()
         else:
-            print("Invalid input. \n "
-                  "Please choose between: <Q-Learning>, <Soft Max>, <SARSA>, <manual> or <exit>.")
+            print("Invalid input. \n")
             continue
 
 
@@ -85,13 +88,89 @@ def initialize(init=0):
     return R, Q, V, states, actions
 
 
-def q_learning(R, Q, V, states, actions, epsilon=EPSILON,
-    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
-    print('Starting Q learning')
-    print('Episodes: ', n_episodes)
-    print('Discount factor:', gamma)
-    print('Epsilon:', epsilon)
-    print('Learning rate:', lr)
+def double_q_learning(R, Q, V, states, actions, epsilon=EPSILON,
+    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000, e_decay=1., verbose=False):
+    if verbose:
+        print('Starting double Q learning')
+        print('Episodes: ', n_episodes)
+        print('Discount factor:', gamma)
+        print('Epsilon:', epsilon)
+        print('Epsilon decay:', e_decay)
+        print('Learning rate:', lr)
+
+    t0 = time.time_ns()
+    Gs = []
+    Qa, Va = Q.copy(), V.copy()
+    Qb, Vb = Q.copy(), V.copy()
+    for e in np.arange(1, n_episodes+1):
+        state = START
+        G = 0
+        while state not in TERMINAL:
+            
+            # This is epsilon-greedy
+            if np.random.binomial(1, epsilon):
+                # with chance of epsilon, pick a random action
+                action = np.random.choice(actions)
+            else:
+                # otherwise pick a random action amongst the highest q value only
+                Q = np.add(Qa, Qb)
+                best = np.argwhere(Q[states.index(state)]==np.max(Q[states.index(state)])).flatten()
+                action = np.random.choice(best)
+
+            # get next state
+            next_state = getNextState(state, action, debug=False)
+
+            # get reward
+            r = R[next_state]
+            G = r + (G * gamma)
+
+            # update q
+            if np.random.binomial(1, 0.5):
+                a_star = np.argmax(Qa[states.index(next_state)])
+                Qa[states.index(state)][action] += lr * (r + gamma * Qb[states.index(next_state)][a_star] - Qa[states.index(state)][action])
+            else:
+                b_star = np.argmax(Qb[states.index(next_state)])
+                Qb[states.index(state)][action] += lr * (r + gamma * Qa[states.index(next_state)][b_star] - Qb[states.index(state)][action])
+
+            state = next_state
+
+        # decay epsilon if needed
+        epsilon *= e_decay
+
+        Gs.append(G)
+
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
+    if verbose:
+        print()
+        print('Double Q Learning completed')
+        print('Mean Cummulative Reward:', np.mean(Gs))
+        print('Runtime in ms: ', runtime)
+        print('Qa:\n', Qa)
+        print('Qb:\n', Qb)
+
+        for state in states:
+                Va[state] = np.max(Qa[states.index(state)])
+                Vb[state] = np.max(Qb[states.index(state)])
+        print('Va:\n', Va)
+        print('Vb:\n', Vb)
+        print()
+
+    return Gs, runtime
+
+
+def q_learning_er(R, Q, V, states, actions, epsilon=EPSILON,
+    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000, e_decay=1., verbose=False):
+    
+    # THIS FUNCTION IS NOT DONE AND WILL NOT YIELD THE EXPECTED OUTPUT!
+
+    if verbose:
+        print('Starting Q learning with experience replay')
+        print('Episodes: ', n_episodes)
+        print('Discount factor:', gamma)
+        print('Epsilon:', epsilon)
+        print('Epsilon decay:', e_decay)
+        print('Learning rate:', lr)
 
     t0 = time.time_ns()
     Gs = []
@@ -121,39 +200,105 @@ def q_learning(R, Q, V, states, actions, epsilon=EPSILON,
 
             state = next_state
 
+        # decay epsilon if needed
+        epsilon *= e_decay
+
         Gs.append(G)
 
     t1 = time.time_ns()
     runtime = (t1 - t0) / 1000000
-    print()
-    print('Q Learning completed')
-    print('Mean Cummulative Reward:', np.mean(Gs))
-    print('Runtime in ms: ', runtime)
-    print('Q:\n', Q)
+    if verbose:
+        print()
+        print('Q Learning with experience replay completed')
+        print('Mean Cummulative Reward:', np.mean(Gs))
+        print('Runtime in ms: ', runtime)
+        print('Q:\n', Q)
 
-    for state in states:
-            V[state] = np.max(Q[states.index(state)])
-    print('V:\n', V)
-    print()
+        for state in states:
+                V[state] = np.max(Q[states.index(state)])
+        print('V:\n', V)
+        print()
 
-    return Gs
+    return Gs, runtime
+
+
+def q_learning(R, Q, V, states, actions, epsilon=EPSILON,
+    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000, e_decay=1., verbose=False):
+    if verbose:
+        print('Starting Q learning')
+        print('Episodes: ', n_episodes)
+        print('Discount factor:', gamma)
+        print('Epsilon:', epsilon)
+        print('Epsilon decay:', e_decay)
+        print('Learning rate:', lr)
+
+    t0 = time.time_ns()
+    Gs = []
+    for e in np.arange(1, n_episodes+1):
+        state = START
+        G = 0
+        while state not in TERMINAL:
+            
+            # This is epsilon-greedy
+            if np.random.binomial(1, epsilon):
+                # with chance of epsilon, pick a random action
+                action = np.random.choice(actions)
+            else:
+                # otherwise pick a random action amongst the highest q value only
+                best = np.argwhere(Q[states.index(state)]==np.max(Q[states.index(state)])).flatten()
+                action = np.random.choice(best)
+
+            # get next state
+            next_state = getNextState(state, action, debug=False)
+
+            # get reward
+            r = R[next_state]
+            G = r + (G * gamma)
+
+            # update q
+            Q[states.index(state)][action] += lr * (r + gamma * np.max(Q[states.index(next_state)]) - Q[states.index(state)][action])
+
+            state = next_state
+
+        # decay epsilon if needed
+        epsilon *= e_decay
+
+        Gs.append(G)
+
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
+    if verbose:
+        print()
+        print('Q Learning completed')
+        print('Mean Cummulative Reward:', np.mean(Gs))
+        print('Runtime in ms: ', runtime)
+        print('Q:\n', Q)
+
+        for state in states:
+                V[state] = np.max(Q[states.index(state)])
+        print('V:\n', V)
+        print()
+
+    return Gs, runtime
 
 
 def softmax(x, t=1.):
     #Compute softmax values for each sets of scores in x.
     x = x.copy()
     x -= np.max(x)
+    
     return np.exp(np.array(x)/(t + 1e-16)) / np.sum(np.exp(np.array(x)/(t + 1e-16)), axis=0)
 
 
-
 def soft_max(R, Q, V, states, actions, temperature=TEMPERATURE,
-    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
-    print('Starting Soft Max exploration')
-    print('Episodes: ', n_episodes)
-    print('Discount factor:', gamma)
-    print('temperature:', temperature)
-    print('Learning rate:', lr)
+    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000, t_decay=1., verbose=False):
+    if verbose:
+        print('Starting Soft Max exploration')
+        print('Episodes: ', n_episodes)
+        print('Discount factor:', gamma)
+        print('Temperature:', temperature)
+        print('Temperature decay:', t_decay)
+        print('Learning rate:', lr)
 
     t0 = time.time_ns()
     Gs = []
@@ -178,31 +323,114 @@ def soft_max(R, Q, V, states, actions, temperature=TEMPERATURE,
 
             state = next_state
 
+        # decay temperature if needed
+        temperature *= t_decay
+
         Gs.append(G)
 
     t1 = time.time_ns()
     runtime = (t1 - t0) / 1000000
-    print()
-    print('Soft Max exploration completed')
-    print('Runtime in ms: ', runtime)
-    print('Mean Cummulative Reward:', np.mean(Gs))
-    print('Q:\n', Q)
+    if verbose:
+        print()
+        print('Soft Max exploration completed')
+        print('Runtime in ms: ', runtime)
+        print('Mean Cummulative Reward:', np.mean(Gs))
+        print('Q:\n', Q)
 
-    for state in states:
-            V[state] = np.max(Q[states.index(state)]).copy()
-    print('V:\n', V)
+        for state in states:
+                V[state] = np.max(Q[states.index(state)]).copy()
+        print('V:\n', V)
 
-    return Gs
+    return Gs, runtime
 
+
+def q_learning_et(R, Q, V, states, actions, epsilon=EPSILON,
+               gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000,
+               lamb=0.5, e_decay=1., verbose=False):
+    if verbose:
+        print('Starting Q learning with eligibility traces')
+        print('Episodes: ', n_episodes)
+        print('Discount factor:', gamma)
+        print('Epsilon:', epsilon)
+        print('Epsilon decay:', e_decay)
+        print('Learning rate:', lr)
+
+    t0 = time.time_ns()
+    Gs = []
+    E = np.zeros(Q.shape)                            # 4 by 16 table
+    for e in np.arange(1, n_episodes + 1):
+        # Initialize (s,a)
+        state = START                                   # Starting coordinates
+        action = np.random.choice(actions)              # Random action (0 to 3)
+        G = 0
+        while state not in TERMINAL:
+
+            # Observe next_state
+            next_state = getNextState(state, action, debug=False)    # Coordinates next state
+
+            # Observe reward
+            r = R[next_state]
+            G = r + (G * gamma)
+
+            # Choosing action from policy
+            if np.random.binomial(1, epsilon):
+                # with chance of epsilon, pick a random action
+                next_action = np.random.choice(actions)
+            else:
+                # otherwise pick a random action amongst the highest q value only
+                best = np.argwhere(Q[states.index(next_state)] == np.max(Q[states.index(next_state)])).flatten()
+                next_action = np.random.choice(best)
+
+            # Determine a*
+            best_next_action = np.argmax(Q[next_state])
+
+            # Determine budew-looking thing (TD_error)
+            budew = r + gamma * Q[states.index(next_state)][best_next_action] - Q[states.index(state)][action]
+
+            # Update e(s,a)
+            E[states.index(state)][action] = E[states.index(state)][action] + 1
+
+            for s in states:                # s = coordinates
+                for a in actions:           # a = value from 0 to 3
+                    Q[states.index(s)][a] = Q[states.index(s)][a] + lr * budew * E[states.index(s)][a]
+                    if next_action == best_next_action:
+                        E[states.index(s)][a] = gamma * lamb * E[states.index(s)][a]
+                    else:
+                        E[states.index(s)][a] = 0
+
+            state = next_state
+            action = next_action
+
+        # decay epsilon if needed
+        epsilon *= e_decay
+
+        Gs.append(G)
+
+    t1 = time.time_ns()
+    runtime = (t1 - t0) / 1000000
+    if verbose:
+        print()
+        print('Q Eligibility Traces completed')
+        print('Mean Cummulative Reward:', np.mean(Gs))
+        print('Runtime in ms: ', runtime)
+        print('Q:\n', Q)
+
+        for state in states:
+            V[state] = np.max(Q[states.index(state)])
+        print('V:\n', V)
+
+    return Gs, runtime
 
 
 def sarsa(R, Q, V, states, actions, epsilon=EPSILON,
-    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000):
-    print('Starting SARSA')
-    print('Episodes: ', n_episodes)
-    print('Discount factor:', gamma)
-    print('Epsilon:', epsilon)
-    print('Learning rate:', lr)
+    gamma=DISCOUNT, lr=LEARNING_RATE, n_episodes=1000, e_decay=1., verbose=False):
+    if verbose:
+        print('Starting SARSA')
+        print('Episodes: ', n_episodes)
+        print('Discount factor:', gamma)
+        print('Epsilon:', epsilon)
+        print('Epsilon decay:', e_decay)
+        print('Learning rate:', lr)
 
     t0 = time.time_ns()
     Gs = []
@@ -243,21 +471,24 @@ def sarsa(R, Q, V, states, actions, epsilon=EPSILON,
             state = next_state
             action = next_action
 
+        # decay epsilon if needed
+        epsilon *= e_decay
         Gs.append(G)
 
     t1 = time.time_ns()
     runtime = (t1 - t0) / 1000000
-    print()
-    print('SARSA completed')
-    print('Runtime in ms: ', runtime)
-    print('Mean Cummulative Reward:', np.mean(Gs))
-    print('Q:\n', Q)
+    if verbose:
+        print()
+        print('SARSA completed')
+        print('Runtime in ms: ', runtime)
+        print('Mean Cummulative Reward:', np.mean(Gs))
+        print('Q:\n', Q)
 
-    for state in states:
-            V[state] = np.max(Q[states.index(state)])
-    print('V:\n', V)
+        for state in states:
+                V[state] = np.max(Q[states.index(state)])
+        print('V:\n', V)
 
-    return Gs
+    return Gs, runtime
 
 
 def random_policy(R, Q, V, states, actions, gamma=DISCOUNT, theta=float(1e-3), debug=False):
