@@ -9,8 +9,8 @@ import pandas as pd
 
 plt.style.use('ggplot')
 
-RUNS = 256
-EPISODES = 1000
+RUNS = 100
+EPISODES = 3000
 LEARNING_RATE = 0.1
 
 def task8():
@@ -19,17 +19,18 @@ def task8():
 	results = {}
 	time = {}
 	for i in [0.01, 0.1]:
-		run = []
-		runtimes = []
-		for k in range(RUNS):
-			R, Q, V, states, actions = main.initialize(init=0)
-			print('Run', k+1)
-			Gs, runtime = main.q_learning(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, n_episodes=EPISODES)
-			run.append(Gs)
-			runtimes.append(runtime)
-			print('\n\n')
-		results.update({'epsilon = %.2f' % (i): run})
-		time.update({'epsilon = %.2f' % (i): runtimes})
+		for j in [1., 0.999]:
+			run = []
+			runtimes = []
+			for k in range(RUNS):
+				R, Q, V, states, actions = main.initialize(init=0)
+				#print('Run', k+1)
+				Gs, runtime = main.q_learning(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, e_decay=j, n_episodes=EPISODES)
+				run.append(Gs)
+				runtimes.append(runtime)
+				#print('\n\n')
+			results.update({'epsilon = %.2f, decay = %.3f' % (i, j): run})
+			time.update({'epsilon = %.2f, decay = %.3f' % (i, j): runtimes})
 	for k, v in time.items():
 		print(k)
 		print('Mean runtime [ms] +- SE: %.2f (+- %.2f)' % (np.mean(v), np.std(v)/np.sqrt(RUNS)))
@@ -46,17 +47,18 @@ def task9():
 	results = {}
 	time = {}
 	for i in [1.0, 20.0, 50.0]:
-		run = []
-		runtimes = []
-		for k in range(RUNS):
-			R, Q, V, states, actions = main.initialize(init=0)
-			print('Run', k+1)
-			Gs, runtime = main.soft_max(R, Q, V, states, actions, lr=LEARNING_RATE, temperature=i, n_episodes=EPISODES)
-			run.append(Gs)
-			runtimes.append(runtime)
-			print('\n\n')
-		results.update({'temp = %.1f' % i: run})
-		time.update({'temp = %.1f' % i: runtimes})
+		for j in [1., 0.999]:
+			run = []
+			runtimes = []
+			for k in range(RUNS):
+				R, Q, V, states, actions = main.initialize(init=0)
+				#print('Run', k+1)
+				Gs, runtime = main.soft_max(R, Q, V, states, actions, lr=LEARNING_RATE, temperature=i, t_decay=j, n_episodes=EPISODES)
+				run.append(Gs)
+				runtimes.append(runtime)
+				#print('\n\n')
+			results.update({'temp = %.1f, decay = %.3f' % (i, j): run})
+			time.update({'temp = %.1f, decay = %.3f' % (i, j): runtimes})
 	for k, v in time.items():
 		print(k)
 		print('Mean runtime [ms] +- SE: %.2f (+- %.2f)' % (np.mean(v), np.std(v)/np.sqrt(RUNS)))
@@ -77,11 +79,11 @@ def task10():
 		runtimes = []
 		for k in range(RUNS):
 			R, Q, V, states, actions = main.initialize(init=0)
-			print('Run', k+1)
+			#print('Run', k+1)
 			Gs, runtime = main.sarsa(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, n_episodes=EPISODES)
 			run.append(Gs)
 			runtimes.append(runtime)
-			print('\n\n')
+			#print('\n\n')
 		results.update({'epsilon = %.3f' % i: run})
 		time.update({'epsilon = %.2f' % i: runtimes})
 	for k, v in time.items():
@@ -95,6 +97,9 @@ def task10():
 
 
 def task11():
+
+	# THIS FUNCTION IS NOT DONE AND WILL NOT YIELD THE EXPECTED OUTPUT!
+
 	print('TASK 11:')
 	print(f'{RUNS} Runs of Q learning with experience replay on {EPISODES} episodes.')
 	results = {}
@@ -104,11 +109,11 @@ def task11():
 		runtimes = []
 		for k in range(RUNS):
 			R, Q, V, states, actions = main.initialize(init=0)
-			print('Run', k+1)
+			#print('Run', k+1)
 			Gs, runtime = main.q_learning_er(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, n_episodes=EPISODES)
 			run.append(Gs)
 			runtimes.append(runtime)
-			print('\n\n')
+			#print('\n\n')
 		results.update({'epsilon = %.3f' % i: run})
 		time.update({'epsilon = %.2f' % i: runtimes})
 	print('Task 11 complete.')
@@ -123,17 +128,22 @@ def task12():
 	results = {}
 	time = {}
 	for i in [0.01, 0.1]:
-		run = []
-		runtimes = []
-		for k in range(RUNS):
-			R, Q, V, states, actions = main.initialize(init=0)
-			print('Run', k+1)
-			Gs, runtime = main.q_learning_et(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, n_episodes=EPISODES)
-			run.append(Gs)
-			runtimes.append(runtime)
-			print('\n\n')
-		results.update({'epsilon = %.3f' % i: run})
-		time.update({'epsilon = %.2f' % i: runtimes})
+		for j in [0.5, 1.]:
+			run = []
+			runtimes = []
+			for k in range(RUNS):
+				R, Q, V, states, actions = main.initialize(init=0)
+				#print('Run', k+1)
+				Gs, runtime = main.q_learning_et(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, n_episodes=EPISODES, lamb=j)
+				run.append(Gs)
+				runtimes.append(runtime)
+				#print('\n\n')
+			results.update({'epsilon = %.3f, lambda = %.1f' % (i,j): run})
+			time.update({'epsilon = %.3f, lambda = %.1f' % (i,j): runtimes})
+	for k, v in time.items():
+		print(k)
+		print('Mean runtime [ms] +- SE: %.2f (+- %.2f)' % (np.mean(v), np.std(v)/np.sqrt(RUNS)))
+		print()
 	print('Task 12 complete.')
 	print()
 
@@ -147,13 +157,14 @@ def task14c():
 	time = {}
 	for i in [0.01, 0.1]:
 		run = []
+		runtimes = []
 		for k in range(RUNS):
 			R, Q, V, states, actions = main.initialize(init=0)
-			print('Run', k+1)
+			#print('Run', k+1)
 			Gs, runtime = main.double_q_learning(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, n_episodes=EPISODES)
 			run.append(Gs)
 			runtimes.append(runtime)
-			print('\n\n')
+			#print('\n\n')
 		results.update({'epsilon = %.3f' % i: run})
 		time.update({'epsilon = %.2f' % i: runtimes})
 	for k, v in time.items():
@@ -166,12 +177,85 @@ def task14c():
 	return results
 
 
-def plot_results(results, title, savefig=True):
+def comparison():
+	print('COMPARISON:')
+	print(f'{RUNS} Runs of all algorithms on {EPISODES} episodes.')
+	results = {}
+	time = {}
+	i = 0.01
+	t = 20
+	run = []
+	runtimes = []
+	for k in range(RUNS):
+		R, Q, V, states, actions = main.initialize(init=0)
+		#print('Run', k+1)
+		Gs, runtime = main.soft_max(R, Q, V, states, actions, lr=LEARNING_RATE, temperature=t, n_episodes=EPISODES)
+		run.append(Gs)
+		runtimes.append(runtime)
+		#print('\n\n')
+	results.update({'Soft Max': run})
+	time.update({'Soft Max': runtimes})
+	run = []
+	runtimes = []
+	for k in range(RUNS):
+		R, Q, V, states, actions = main.initialize(init=0)
+		#print('Run', k+1)
+		Gs, runtime = main.q_learning(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, n_episodes=EPISODES)
+		run.append(Gs)
+		runtimes.append(runtime)
+		#print('\n\n')
+	results.update({'Q Learning': run})
+	time.update({'Q Learning': runtimes})
+	run = []
+	runtimes = []
+	for k in range(RUNS):
+		R, Q, V, states, actions = main.initialize(init=0)
+		#print('Run', k+1)
+		Gs, runtime = main.double_q_learning(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, n_episodes=EPISODES)
+		run.append(Gs)
+		runtimes.append(runtime)
+		#print('\n\n')
+	results.update({'Double Q Learning': run})
+	time.update({'Double Q Learning': runtimes})
+	run = []
+	runtimes = []
+	for k in range(RUNS):
+		R, Q, V, states, actions = main.initialize(init=0)
+		#print('Run', k+1)
+		Gs, runtime = main.q_learning_et(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, n_episodes=EPISODES)
+		run.append(Gs)
+		runtimes.append(runtime)
+		#print('\n\n')
+	results.update({'Q Learning ET': run})
+	time.update({'Q Learning ET': runtimes})
+	run = []
+	runtimes = []
+	for k in range(RUNS):
+		R, Q, V, states, actions = main.initialize(init=0)
+		#print('Run', k+1)
+		Gs, runtime = main.q_learning(R, Q, V, states, actions, lr=LEARNING_RATE, epsilon=i, n_episodes=EPISODES)
+		run.append(Gs)
+		runtimes.append(runtime)
+		#print('\n\n')
+	results.update({'SARSA': run})
+	time.update({'SARSA': runtimes})
+	for k, v in time.items():
+		print(k)
+		print('Mean runtime [ms] +- SE: %.2f (+- %.2f)' % (np.mean(v), np.std(v)/np.sqrt(RUNS)))
+		print()
+	print('Task 14c complete.')
+	print()
+
+	return results
+
+
+def plot_results(results, title, savefig=True, smoothing=10):
 
 	fig, ax = plt.subplots(1)
 	for k, v in results.items():
 		Y = np.array(v)
 		M = Y.mean(axis=0)
+		M = pd.Series(M).rolling(window=smoothing, min_periods=1).mean().values #.iloc[smoothing-1:].values
 		S = Y.std(axis=0) / np.sqrt(RUNS)
 		X = np.arange(1,len(M)+1)
 		ax.plot(X, M, label=k)
@@ -183,7 +267,7 @@ def plot_results(results, title, savefig=True):
 	plt.legend()
 	plt.tight_layout()
 	if savefig:
-		plt.savefig('%s_r%i_e%i.csv' % (title, RUNS, EPISODES))
+		plt.savefig('%s_r%i_e%i.png' % (title, RUNS, EPISODES))
 	else:
 		plt.show()
 
@@ -198,27 +282,30 @@ if __name__ == '__main__':
 	results = task8()
 	plot_results(results, 'Q Learning')
 	save_results(results, 'Q Learning')
-	#input('Press ENTER to continue')
+	input('Press ENTER to continue')
+	results = comparison()
+	plot_results(results, 'Comparison')
+	save_results(results, 'Comparison')
 	print('\n\n', 100 * '#', '\n\n')
 	results = task9()
 	plot_results(results, 'Soft Max')
 	save_results(results, 'Soft Max')
-	#input('Press ENTER to continue')
+	input('Press ENTER to continue')
 	print('\n\n', 100 * '#', '\n\n')
 	results = task10()
 	plot_results(results, 'SARSA')
 	save_results(results, 'SARSA')
-	#input('Press ENTER to continue')
-	#print('\n\n', 100 * '#', '\n\n')
-	#results = task11()
-	#plot_results(results, 'Q Learning ER')
-	#save_results(results, 'Q Learning ER')
-	#input('Press ENTER to continue')
+	input('Press ENTER to continue')
+	print('\n\n', 100 * '#', '\n\n')
+	results = task11()
+	plot_results(results, 'Q Learning ER')
+	save_results(results, 'Q Learning ER')
+	input('Press ENTER to continue')
 	print('\n\n', 100 * '#', '\n\n')
 	results = task12()
 	plot_results(results, 'Q Learning ET')
 	save_results(results, 'Q Learning ET')
-	#input('Press ENTER to continue')
+	input('Press ENTER to continue')
 	print('\n\n', 100 * '#', '\n\n')
 	results = task14c()
 	plot_results(results, 'Double Q Learning')
